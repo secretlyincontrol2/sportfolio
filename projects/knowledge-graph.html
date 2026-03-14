@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Graph Ecosystem | Timilehin Adedayo</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="logo"><a href="../index.html" style="text-decoration:none;color:inherit;">T<span>IMILEHIN ADEDAYO</span></a></div>
+            <ul class="nav-links">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="../about.html">About</a></li>
+                <li><a href="../projects.html" class="active">Projects</a></li>
+                <li><a href="../certifications.html">Certifications</a></li>
+                <li><a href="../contact.html">Contact</a></li>
+                <li><a href="../cv/Timilehin Adedayo - CV.pdf" download class="btn-cv">Download CV</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main>
+        <div class="container project-detail">
+            <a href="../projects.html" class="back-link">Back to Projects</a>
+
+            <div class="badge" style="margin-bottom:1rem;">Knowledge Graph & RAG</div>
+            <h1>Babcock University Knowledge Graph Ecosystem</h1>
+            <p class="subtitle">A production-grade, full-stack AI platform that integrates Large Language Models (LLMs) with a structured Knowledge Graph (Neo4j) to provide factual, high-precision answers regarding Babcock University's academic and administrative data.</p>
+
+            <div class="detail-layout">
+                <div>
+                    <div class="detail-section">
+                        <h2>Executive Summary</h2>
+                        <p>This ecosystem serves as the central fact-checking hub for Babcock University data, enabling researchers and students to query complex academic relationships that are impossible to navigate via traditional SQL databases alone. It features a robust FastAPI backend, a high-performance React dashboard, and a published Python SDK for external developer integration.</p>
+                    </div>
+
+                    <div class="detail-section">
+                        <h2>Featured Library: gdg-bu-kg</h2>
+                        <p>A professional-grade Python package developed to allow developers to interact securely with the Knowledge Graph. Key features include:</p>
+                        <ul>
+                            <li><strong>Hybrid Authentication:</strong> Implements a "One-Time Exchange" mechanism where permanent API keys are traded for short-lived Session JWTs, reducing query latency by ~500ms.</li>
+                            <li><strong>State Management:</strong> Fully Asyncio-compatible client built on Pydantic v2 models for strict type safety.</li>
+                            <li><strong>Security Architecture:</strong> Internal attribute mangling and backend proxying to prevent data exposure.</li>
+                            <li><strong>AI Integration:</strong> Wrapper for conversational querying with configurable system prompts and temperature settings.</li>
+                        </ul>
+                    </div>
+
+                    <div class="detail-section">
+                        <h2>Key Engineering Achievements</h2>
+                        <ul>
+                            <li><strong>Systems Optimization:</strong> Optimized the authentication flow to use stateless JWT validation, significantly improving response times for high-concurrency SDK usage.</li>
+                            <li><strong>Dialect-Aware Database Engine:</strong> Engineered a robust database connection pool in SQLAlchemy with automatic PostgreSQL/SQLite failover and connection recycling.</li>
+                            <li><strong>Command Center UI:</strong> Designed and implemented a real-time monitoring dashboard providing instant visibility into query volume, system reliability, and active user entities.</li>
+                            <li><strong>Audit-Driven Analytics:</strong> Built a comprehensive audit logging system that tracks system performance, query patterns, and failure rates across 30-day windows.</li>
+                        </ul>
+                    </div>
+
+                    <div class="detail-section">
+                        <h2>Impact</h2>
+                        <p>The platform serves as the central fact-checking hub for Babcock University data, enabling researchers and students to query complex academic relationships that are impossible to navigate via traditional SQL databases alone.</p>
+                    </div>
+                </div>
+
+                <aside>
+                    <div class="sidebar-box">
+                        <h3>Core Infrastructure</h3>
+                        <ul>
+                            <li>Neo4j Aura (Knowledge Graph)</li>
+                            <li>FastAPI (Backend)</li>
+                            <li>React/Vite (Frontend)</li>
+                            <li>TailwindCSS</li>
+                        </ul>
+                    </div>
+                    <div class="sidebar-box">
+                        <h3>AI/RAG Pipeline</h3>
+                        <ul>
+                            <li>LLM Router logic</li>
+                            <li>Cypher Query Language</li>
+                            <li>Hybrid RAG architecture</li>
+                        </ul>
+                    </div>
+                    <div class="sidebar-box">
+                        <h3>Links</h3>
+                        <ul>
+                            <li><a href="https://pypi.org/project/gdg-bu-kg/" target="_blank">PyPI SDK</a></li>
+                            <li><a href="https://github.com/secretlyincontrol2" target="_blank">GitHub</a></li>
+                        </ul>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2026 Timilehin Adedayo. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../main.js"></script>
+</body>
+</html>

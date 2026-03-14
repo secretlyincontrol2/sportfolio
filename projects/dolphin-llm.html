@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dolphin LLM Research | Timilehin Adedayo</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="logo"><a href="../index.html" style="text-decoration:none;color:inherit;">T<span>IMILEHIN ADEDAYO</span></a></div>
+            <ul class="nav-links">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="../about.html">About</a></li>
+                <li><a href="../projects.html" class="active">Projects</a></li>
+                <li><a href="../certifications.html">Certifications</a></li>
+                <li><a href="../contact.html">Contact</a></li>
+                <li><a href="../cv/Timilehin Adedayo - CV.pdf" download class="btn-cv">Download CV</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main>
+        <div class="container project-detail">
+            <a href="../projects.html" class="back-link">Back to Projects</a>
+
+            <div class="badge" style="margin-bottom:1rem;">LLM Fine-tuning & Safety</div>
+            <h1>Fine-tuned Dolphin LLM (Safety Research)</h1>
+            <p class="subtitle">Performed memory-efficient fine-tuning on large models to test the effects of LLMs without guardrails in a university setting.</p>
+
+            <div class="detail-layout">
+                <div>
+                    <div class="detail-section">
+                        <h2>Research Objective</h2>
+                        <p>Understanding the boundaries of open-source LLMs through instruction-following optimization. This research focused on making models more direct and honest while analyzing the risks associated with removing standard safety alignment.</p>
+                        <ul>
+                            <li><strong>PEFT Optimization:</strong> Utilizing Parameter-Efficient Fine-Tuning (PEFT) to optimize models on limited hardware.</li>
+                            <li><strong>Data Alignment:</strong> Curating datasets to prioritize honesty and directness in model responses.</li>
+                            <li><strong>Impact Analysis:</strong> Testing model behavior in a controlled academic setting to measure accuracy vs. hallucination rates.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <aside>
+                    <div class="sidebar-box">
+                        <h3>Tech Stack</h3>
+                        <ul>
+                            <li>Python, PyTorch</li>
+                            <li>Hugging Face (PEFT, Transformers)</li>
+                            <li>Accelerate</li>
+                        </ul>
+                    </div>
+                    <div class="sidebar-box">
+                        <h3>Links</h3>
+                        <ul>
+                            <li><a href="https://huggingface.co/santacl/septicspo/tree/main" target="_blank">HuggingFace Repo</a></li>
+                        </ul>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2026 Timilehin Adedayo. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../main.js"></script>
+</body>
+</html>

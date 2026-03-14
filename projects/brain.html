@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRAIN AI | Timilehin Adedayo</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="logo"><a href="../index.html" style="text-decoration:none;color:inherit;">T<span>IMILEHIN ADEDAYO</span></a></div>
+            <ul class="nav-links">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="../about.html">About</a></li>
+                <li><a href="../projects.html" class="active">Projects</a></li>
+                <li><a href="../certifications.html">Certifications</a></li>
+                <li><a href="../contact.html">Contact</a></li>
+                <li><a href="../cv/Timilehin Adedayo - CV.pdf" download class="btn-cv">Download CV</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main>
+        <div class="container project-detail">
+            <a href="../projects.html" class="back-link">Back to Projects</a>
+
+            <div class="badge" style="margin-bottom:1rem;">Explainable AI & Medical Imaging</div>
+            <h1>BRAIN (Breast Retrieval-Augmented Intelligence Network)</h1>
+            <p class="subtitle">Designed an explainable AI system for breast cancer diagnosis utilizing a Swin Transformer Base (Swin-B) architecture.</p>
+
+            <div class="detail-layout">
+                <div>
+                    <div class="detail-section">
+                        <h2>Technical Innovation</h2>
+                        <p>Designed a custom Swin-B Transformer model equipped with a Dual-Head Loss system to analyze mammography data. Key technical features include:</p>
+                        <ul>
+                            <li><strong>Dual-Head Loss:</strong> Framework combining Cross-Entropy and Triplet Loss with Batch Hard Mining to optimize feature extraction.</li>
+                            <li><strong>RAG-based Verification:</strong> Engineered a Retrieval-Augmented Verification module using Facebook's FAISS library to cross-check predictions against a 24,576-image knowledge base (IMSMD).</li>
+                            <li><strong>Lesion Visualization:</strong> Integrated Grad-CAM++ and Attention Rollout to provide visual heatmaps of pathological features like microcalcifications and spiculated margins.</li>
+                        </ul>
+                    </div>
+
+                    <div class="detail-section">
+                        <h2>Results & Performance</h2>
+                        <ul>
+                            <li>Achieved <strong>100% classification accuracy</strong> and an AUC-ROC of 1.00 on a held-out test set of 4,916 multi-institutional mammograms.</li>
+                            <li>Delivered a clinical decision support system that surfaces transparent visualizations of lesion boundaries.</li>
+                            <li>Mitigated AI hallucinations by verifying predictions against historical cases using the FAISS similarity search.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <aside>
+                    <div class="sidebar-box">
+                        <h3>Core Stack</h3>
+                        <ul>
+                            <li>Python, PyTorch</li>
+                            <li>FastAPI (Model Serving)</li>
+                            <li>React (Frontend)</li>
+                            <li>FAISS (Vector Search)</li>
+                        </ul>
+                    </div>
+                    <div class="sidebar-box">
+                        <h3>Architecture</h3>
+                        <ul>
+                            <li>Swin Transformer Base (Swin-B)</li>
+                            <li>Batch Hard Mining</li>
+                            <li>Grad-CAM++</li>
+                        </ul>
+                    </div>
+                    <div class="sidebar-box">
+                        <h3>Links</h3>
+                        <ul>
+                            <li><a href="https://huggingface.co/santacl/brain/tree/main" target="_blank">HuggingFace</a></li>
+                            <li><a href="https://github.com/secretlyincontrol2" target="_blank">GitHub</a></li>
+                        </ul>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2026 Timilehin Adedayo. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../main.js"></script>
+</body>
+</html>
