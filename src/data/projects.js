@@ -30,7 +30,7 @@ export const projects = [
     icon: '🧠',
     title: 'BRAIN',
     short: 'Explainable AI for cancer diagnosis using Swin Transformer and RAG-based verification, achieving 100% accuracy on test sets.',
-    subtitle: 'Breast Retrieval-Augmented Intelligence Network — Explainable AI for breast cancer diagnosis.',
+    subtitle: 'Breast Retrieval-Augmented Intelligence Network: Explainable AI for breast cancer diagnosis.',
     links: [
       { label: 'Case Study', href: null, internal: true },
       { label: 'Hugging Face', href: 'https://huggingface.co/santacl/brain/tree/main', external: true },
@@ -58,7 +58,7 @@ export const projects = [
     links: [
       { label: 'Explore Research', href: null, internal: true },
     ],
-    overview: `This project investigates model alignment by fine-tuning the Dolphin LLM — a variant of Mistral trained without safety guardrails — using Parameter-Efficient Fine-Tuning (PEFT) methods. The research explores how PEFT techniques affect model behaviour, bias, and guardrail bypass, contributing to the growing body of AI safety literature.`,
+    overview: `This project investigates model alignment by fine-tuning the Dolphin LLM (a variant of Mistral trained without safety guardrails) using Parameter-Efficient Fine-Tuning (PEFT) methods. The research explores how PEFT techniques affect model behaviour, bias, and guardrail bypass, contributing to the growing body of AI safety literature.`,
     highlights: [
       'QLoRA fine-tuning reducing GPU memory by ~75% vs full fine-tuning',
       'Systematic evaluation of model alignment drift post fine-tuning',
@@ -105,7 +105,7 @@ export const projects = [
       { label: 'Review', href: null, internal: true },
       { label: 'Live Demo', href: 'https://owltech-nine.vercel.app/', external: true },
     ],
-    overview: `Owltech is a security intelligence tool built during the Wema Hackathon. It detects Shadow IT — unauthorized software used within an organization — and classifies URLs as malicious or safe using Hugging Face inference models. The tool helps security teams identify exposure without manual review.`,
+    overview: `Owltech is a security intelligence tool built during the Wema Hackathon. It detects Shadow IT (unauthorized software used within an organization) and classifies URLs as malicious or safe using Hugging Face inference models. The tool helps security teams identify exposure without manual review.`,
     highlights: [
       'Shadow IT detection from network traffic patterns',
       'Malicious URL classification via Hugging Face Inference API',

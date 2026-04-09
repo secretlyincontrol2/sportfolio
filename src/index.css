@@ -261,7 +261,7 @@ img { max-width: 100%; display: block; }
   position: relative;
   font-size: 0.9rem;
 }
-.card ul li::before { content: '—'; position: absolute; left: 0; color: var(--accent); font-size: 0.75rem; top: 0.5rem; }
+.card ul li::before { content: '›'; position: absolute; left: 0; color: var(--accent); font-size: 0.75rem; top: 0.5rem; }
 
 /* ─── Project Cards ─── */
 .project-card {
@@ -729,7 +729,7 @@ img { max-width: 100%; display: block; }
 .detail-section li { color: var(--text-dim); margin-bottom: 0.8rem; line-height: 1.9; font-size: 0.92rem; }
 .detail-section ul { list-style: none; padding: 0; }
 .detail-section ul li { padding-left: 1.2rem; position: relative; }
-.detail-section ul li::before { content: '—'; position: absolute; left: 0; color: var(--accent); font-size: 0.7rem; top: 0.55rem; }
+.detail-section ul li::before { content: '›'; position: absolute; left: 0; color: var(--accent); font-size: 0.7rem; top: 0.55rem; }
 
 .sidebar-box {
   padding: 1.5rem;
@@ -742,6 +742,21 @@ img { max-width: 100%; display: block; }
 .sidebar-box ul { list-style: none; }
 .sidebar-box ul li { color: var(--text-dim); padding: 0.3rem 0; font-size: 0.88rem; border-bottom: 1px solid var(--border); }
 .sidebar-box ul li:last-child { border-bottom: none; }
+
+/* ─── Snake Home Grid ─── */
+.snake-home-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .snake-home-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
 
 /* ─── Responsive ─── */
 @media (max-width: 768px) {
