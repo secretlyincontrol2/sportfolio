@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ScrollReveal from '../components/ScrollReveal'
+import SnakeWidget from '../components/SnakeWidget'
 
 // ── Particle canvas background ─────────────────────────────────────────────
 function ParticleCanvas() {
@@ -32,50 +33,38 @@ function ParticleCanvas() {
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-      // Update positions
       nodes.forEach(n => {
-        n.x += n.vx
-        n.y += n.vy
+        n.x += n.vx; n.y += n.vy
         if (n.x < 0 || n.x > canvas.width) n.vx *= -1
         if (n.y < 0 || n.y > canvas.height) n.vy *= -1
       })
-
-      // Draw connections
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
           const dx = nodes[i].x - nodes[j].x
           const dy = nodes[i].y - nodes[j].y
           const dist = Math.sqrt(dx * dx + dy * dy)
           if (dist < MAX_DIST) {
-            const alpha = (1 - dist / MAX_DIST) * 0.35
             ctx.beginPath()
             ctx.moveTo(nodes[i].x, nodes[i].y)
             ctx.lineTo(nodes[j].x, nodes[j].y)
-            ctx.strokeStyle = `rgba(0, 229, 255, ${alpha})`
+            ctx.strokeStyle = `rgba(0, 229, 255, ${(1 - dist / MAX_DIST) * 0.35})`
             ctx.lineWidth = 0.6
             ctx.stroke()
           }
         }
       }
-
-      // Draw nodes
       nodes.forEach(n => {
         ctx.beginPath()
         ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2)
         ctx.fillStyle = 'rgba(0, 229, 255, 0.5)'
         ctx.fill()
       })
-
       animId = requestAnimationFrame(draw)
     }
 
-    init()
-    draw()
-
+    init(); draw()
     const ro = new ResizeObserver(() => { resize(); init() })
     ro.observe(canvas)
-
     return () => { cancelAnimationFrame(animId); ro.disconnect() }
   }, [])
 
@@ -102,17 +91,14 @@ function Typewriter() {
       const t = setTimeout(() => setPaused(false), 1400)
       return () => clearTimeout(t)
     }
-
     const target = ROLES[roleIdx]
     const speed = deleting ? 45 : 80
-
     const t = setTimeout(() => {
       if (!deleting) {
         if (text.length < target.length) {
           setText(target.slice(0, text.length + 1))
         } else {
-          setPaused(true)
-          setDeleting(true)
+          setPaused(true); setDeleting(true)
         }
       } else {
         if (text.length > 0) {
@@ -123,7 +109,6 @@ function Typewriter() {
         }
       }
     }, speed)
-
     return () => clearTimeout(t)
   }, [text, deleting, paused, roleIdx])
 
@@ -135,8 +120,7 @@ function Typewriter() {
   )
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────
-// Drop your photo at public/assets/photo.jpg — it will appear here automatically
+// ── Photo ──────────────────────────────────────────────────────────────────
 const PHOTO_SRC = '/assets/photo.jpg'
 
 export default function Home() {
@@ -144,11 +128,11 @@ export default function Home() {
 
   return (
     <main>
+      {/* ── Hero ── */}
       <section className="hero">
         <ParticleCanvas />
         <div className="container">
           <div className="hero-layout">
-            {/* Left: text content */}
             <div className="hero-content">
               <div className="hero-badge">
                 <span className="dot" />
@@ -162,7 +146,7 @@ export default function Home() {
 
               <p className="tagline">
                 Results-driven AI/ML Developer with expertise in designing and deploying
-                machine learning solutions — fine-tuned LLMs, computer vision systems,
+                machine learning solutions: fine-tuned LLMs, computer vision systems,
                 and production RAG pipelines.
               </p>
 
@@ -172,19 +156,12 @@ export default function Home() {
               </div>
 
               <div className="social-links">
-                <a href="https://github.com/secretlyincontrol2" target="_blank" rel="noreferrer">
-                  ↗ GitHub
-                </a>
-                <a href="https://www.linkedin.com/in/timilehin-adedayo-2697a431a/" target="_blank" rel="noreferrer">
-                  ↗ LinkedIn
-                </a>
-                <a href="https://huggingface.co/santacl" target="_blank" rel="noreferrer">
-                  ↗ Hugging Face
-                </a>
+                <a href="https://github.com/secretlyincontrol2" target="_blank" rel="noreferrer">↗ GitHub</a>
+                <a href="https://www.linkedin.com/in/timilehin-adedayo-2697a431a/" target="_blank" rel="noreferrer">↗ LinkedIn</a>
+                <a href="https://huggingface.co/santacl" target="_blank" rel="noreferrer">↗ Hugging Face</a>
               </div>
             </div>
 
-            {/* Right: photo with glow ring */}
             <div className="hero-photo-wrap">
               <div className="hero-photo-ring">
                 <img
@@ -202,27 +179,27 @@ export default function Home() {
           </div>
 
           <div className="hero-stats">
-              <div className="stat-item">
-                <div className="stat-number">5</div>
-                <div className="stat-label">Projects Shipped</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-number">7</div>
-                <div className="stat-label">Certifications</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-number">100+</div>
-                <div className="stat-label">Students Mentored</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-number">2026</div>
-                <div className="stat-label">B.Sc CS, Babcock University</div>
-              </div>
+            <div className="stat-item">
+              <div className="stat-number">5</div>
+              <div className="stat-label">Projects Shipped</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">7</div>
+              <div className="stat-label">Certifications</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">100+</div>
+              <div className="stat-label">Students Mentored</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">2026</div>
+              <div className="stat-label">B.Sc CS, Babcock University</div>
             </div>
           </div>
+        </div>
       </section>
 
-      {/* Quick intro section */}
+      {/* ── What I Build ── */}
       <section className="section" style={{ borderTop: '1px solid var(--border)', paddingTop: '4rem' }}>
         <div className="container">
           <ScrollReveal>
@@ -233,29 +210,70 @@ export default function Home() {
           <div className="grid-3">
             {[
               {
-                icon: '🧠',
                 title: 'LLM Fine-tuning',
                 body: 'PEFT / QLoRA fine-tuning of open-source models for domain-specific alignment, safety research, and downstream tasks.',
               },
               {
-                icon: '🕸️',
                 title: 'RAG Pipelines',
                 body: 'Hybrid retrieval systems combining vector search with graph traversal over Neo4j knowledge graphs for high-precision Q&A.',
               },
               {
-                icon: '👁️',
                 title: 'Computer Vision',
                 body: 'Swin Transformer-based classification with explainability layers (Grad-CAM++) for medical imaging and beyond.',
               },
             ].map((item, i) => (
               <ScrollReveal key={item.title} delay={i * 100}>
                 <div className="card">
-                  <div style={{ fontSize: '1.8rem', marginBottom: '1rem' }}>{item.icon}</div>
                   <h3>{item.title}</h3>
-                  <p>{item.body}</p>
+                  <p style={{ marginTop: '0.5rem' }}>{item.body}</p>
                 </div>
               </ScrollReveal>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Live Neural Snake AI ── */}
+      <section className="section" style={{ borderTop: '1px solid var(--border)', paddingTop: '4rem' }}>
+        <div className="container">
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'auto 1fr',
+            gap: '4rem',
+            alignItems: 'center',
+          }}
+          className="snake-home-grid"
+          >
+            {/* Live game */}
+            <ScrollReveal>
+              <SnakeWidget showStats={true} />
+            </ScrollReveal>
+
+            {/* Explanation */}
+            <ScrollReveal delay={100}>
+              <div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '0.75rem' }}>
+                  Live Demo
+                </div>
+                <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>
+                  Neural Snake AI
+                </h2>
+                <p style={{ color: 'var(--text-dim)', marginBottom: '1.5rem', lineHeight: 1.9 }}>
+                  This is a real neural network running live in your browser. 100 AI agents play
+                  snake simultaneously, each controlled by a feedforward neural network. When they
+                  all die, a <strong style={{ color: 'var(--text)' }}>genetic algorithm</strong> selects
+                  the best performers, breeds them together, and starts the next generation.
+                </p>
+                <p style={{ color: 'var(--text-dim)', marginBottom: '2rem', lineHeight: 1.9 }}>
+                  No backpropagation. No labelled data. The network learns purely through
+                  <strong style={{ color: 'var(--text)' }}> survival pressure</strong>: the same
+                  principle used in OpenAI's early reinforcement learning research.
+                </p>
+                <Link to="/game" className="btn btn-outline" style={{ display: 'inline-block' }}>
+                  Play it yourself →
+                </Link>
+              </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>

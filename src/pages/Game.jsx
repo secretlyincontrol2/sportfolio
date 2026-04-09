@@ -1,239 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { NeuralNet, SnakeAgent, evolve } from '../game/engine'
 
-// ─── Neural Network ───────────────────────────────────────────────────────
-class NeuralNet {
-  constructor(layers = [11, 16, 4]) {
-    this.layers = layers
-    this.weights = []
-    this.biases = []
-    for (let i = 0; i < layers.length - 1; i++) {
-      const w = []
-      for (let j = 0; j < layers[i + 1]; j++) {
-        const row = []
-        for (let k = 0; k < layers[i]; k++) {
-          row.push((Math.random() * 2 - 1) * Math.sqrt(2 / layers[i]))
-        }
-        w.push(row)
-      }
-      this.weights.push(w)
-      this.biases.push(Array.from({ length: layers[i + 1] }, () => 0))
-    }
-    this.activations = layers.map(n => new Array(n).fill(0))
-  }
-
-  forward(inputs) {
-    this.activations[0] = [...inputs]
-    for (let l = 0; l < this.weights.length; l++) {
-      const out = []
-      for (let j = 0; j < this.weights[l].length; j++) {
-        let sum = this.biases[l][j]
-        for (let k = 0; k < this.activations[l].length; k++) {
-          sum += this.weights[l][j][k] * this.activations[l][k]
-        }
-        // ReLU on hidden layers, linear on output
-        out.push(l < this.weights.length - 1 ? Math.max(0, sum) : sum)
-      }
-      this.activations[l + 1] = out
-    }
-    return this.activations[this.activations.length - 1]
-  }
-
-  copy() {
-    const n = new NeuralNet(this.layers)
-    n.weights = this.weights.map(layer => layer.map(row => [...row]))
-    n.biases = this.biases.map(b => [...b])
-    return n
-  }
-
-  mutate(rate = 0.12, amount = 0.3) {
-    for (let l = 0; l < this.weights.length; l++) {
-      for (let j = 0; j < this.weights[l].length; j++) {
-        for (let k = 0; k < this.weights[l][j].length; k++) {
-          if (Math.random() < rate) {
-            this.weights[l][j][k] += (Math.random() * 2 - 1) * amount
-          }
-        }
-        if (Math.random() < rate) {
-          this.biases[l][j] += (Math.random() * 2 - 1) * amount
-        }
-      }
-    }
-  }
-
-  crossover(other) {
-    const child = this.copy()
-    for (let l = 0; l < child.weights.length; l++) {
-      for (let j = 0; j < child.weights[l].length; j++) {
-        for (let k = 0; k < child.weights[l][j].length; k++) {
-          if (Math.random() < 0.5) {
-            child.weights[l][j][k] = other.weights[l][j][k]
-          }
-        }
-        if (Math.random() < 0.5) {
-          child.biases[l][j] = other.biases[l][j]
-        }
-      }
-    }
-    return child
-  }
-}
-
-// ─── Snake Agent ──────────────────────────────────────────────────────────
-const DIRS = [
-  [0, -1], // up
-  [0,  1], // down
-  [-1, 0], // left
-  [1,  0], // right
-]
-
-class SnakeAgent {
-  constructor(cols, rows, brain = null) {
-    this.cols = cols
-    this.rows = rows
-    this.brain = brain || new NeuralNet([11, 16, 4])
-    this.reset()
-  }
-
-  reset() {
-    const cx = Math.floor(this.cols / 2)
-    const cy = Math.floor(this.rows / 2)
-    this.body = [[cx, cy], [cx - 1, cy], [cx - 2, cy]]
-    this.dir = [1, 0] // moving right
-    this.food = this._placeFood()
-    this.score = 0
-    this.steps = 0
-    this.stepsWithoutFood = 0
-    this.dead = false
-    this.fitness = 0
-  }
-
-  _placeFood() {
-    while (true) {
-      const x = Math.floor(Math.random() * this.cols)
-      const y = Math.floor(Math.random() * this.rows)
-      if (!this.body.some(([bx, by]) => bx === x && by === y)) {
-        return [x, y]
-      }
-    }
-  }
-
-  _getInputs() {
-    const [hx, hy] = this.body[0]
-    const [dx, dy] = this.dir
-    const [fx, fy] = this.food
-
-    // Perpendicular dirs (left/right relative to heading)
-    const leftDir  = [ dy, -dx]
-    const rightDir = [-dy,  dx]
-
-    function danger(snake, cols, rows, d) {
-      const nx = snake.body[0][0] + d[0]
-      const ny = snake.body[0][1] + d[1]
-      if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) return 1
-      if (snake.body.slice(1).some(([bx, by]) => bx === nx && by === ny)) return 1
-      return 0
-    }
-
-    return [
-      danger(this, this.cols, this.rows, this.dir),    // danger straight
-      danger(this, this.cols, this.rows, rightDir),    // danger right
-      danger(this, this.cols, this.rows, leftDir),     // danger left
-      dx === -1 ? 1 : 0,  // moving left
-      dx ===  1 ? 1 : 0,  // moving right
-      dy === -1 ? 1 : 0,  // moving up
-      dy ===  1 ? 1 : 0,  // moving down
-      fx < hx ? 1 : 0,    // food left
-      fx > hx ? 1 : 0,    // food right
-      fy < hy ? 1 : 0,    // food up
-      fy > hy ? 1 : 0,    // food down
-    ]
-  }
-
-  think() {
-    if (!this.brain) return  // manual play — direction set by keyboard
-    const inputs = this._getInputs()
-    const out = this.brain.forward(inputs)
-    // out: [up, down, left, right]
-    const argmax = out.indexOf(Math.max(...out))
-    const newDir = DIRS[argmax]
-
-    // Prevent 180° turn
-    if (newDir[0] !== -this.dir[0] || newDir[1] !== -this.dir[1]) {
-      this.dir = newDir
-    }
-  }
-
-  step() {
-    if (this.dead) return
-
-    this.think()
-    const [hx, hy] = this.body[0]
-    const [dx, dy] = this.dir
-    const nx = hx + dx
-    const ny = hy + dy
-
-    // Wall collision
-    if (nx < 0 || nx >= this.cols || ny < 0 || ny >= this.rows) {
-      this.dead = true
-      return
-    }
-
-    // Self collision
-    if (this.body.slice(1).some(([bx, by]) => bx === nx && by === ny)) {
-      this.dead = true
-      return
-    }
-
-    this.body.unshift([nx, ny])
-    this.steps++
-    this.stepsWithoutFood++
-
-    const maxSteps = 100 + this.score * 50
-    if (this.stepsWithoutFood > maxSteps) {
-      this.dead = true
-      return
-    }
-
-    if (nx === this.food[0] && ny === this.food[1]) {
-      this.score++
-      this.stepsWithoutFood = 0
-      this.food = this._placeFood()
-    } else {
-      this.body.pop()
-    }
-  }
-
-  calcFitness() {
-    this.fitness = this.steps + this.score * 100 + this.score * this.score * 200
-    return this.fitness
-  }
-}
-
-// ─── Genetic Algorithm ────────────────────────────────────────────────────
-function evolve(population) {
-  population.forEach(s => s.calcFitness())
-  population.sort((a, b) => b.fitness - a.fitness)
-
-  const top = Math.max(5, Math.floor(population.length * 0.15))
-  const elite = population.slice(0, top)
-  const newPop = [elite[0].brain.copy()] // keep best unchanged
-
-  // Fill rest with crossover + mutation
-  while (newPop.length < population.length) {
-    const pA = elite[Math.floor(Math.random() * elite.length)]
-    const pB = elite[Math.floor(Math.random() * elite.length)]
-    const childBrain = pA.brain.crossover(pB.brain)
-    childBrain.mutate(0.12, 0.3)
-    newPop.push(childBrain)
-  }
-
-  return newPop.map((brain, i) => {
-    const agent = new SnakeAgent(population[0].cols, population[0].rows, brain)
-    return agent
-  })
-}
-
-// ─── NN Visualizer Canvas ─────────────────────────────────────────────────
+// ── NN Visualizer Canvas ─────────────────────────────────────────────────────
 function NNViz({ activations }) {
   const canvasRef = useRef(null)
 
@@ -250,7 +18,6 @@ function NNViz({ activations }) {
     const layerCount = layers.length
     const layerX = (i) => (W / (layerCount + 1)) * (i + 1)
 
-    // Compute node positions
     const positions = layers.map((layer, li) => {
       const maxVisible = Math.min(layer.length, 12)
       return layer.slice(0, maxVisible).map((_, ni) => {
@@ -263,7 +30,7 @@ function NNViz({ activations }) {
       })
     })
 
-    // Draw connections
+    // Connections
     for (let li = 0; li < positions.length - 1; li++) {
       for (const src of positions[li]) {
         for (const dst of positions[li + 1]) {
@@ -281,7 +48,7 @@ function NNViz({ activations }) {
       }
     }
 
-    // Draw nodes
+    // Nodes
     positions.forEach((layer) => {
       layer.forEach(node => {
         const val = Math.min(1, Math.max(0, node.val))
@@ -306,7 +73,7 @@ function NNViz({ activations }) {
   )
 }
 
-// ─── Game Canvas ──────────────────────────────────────────────────────────
+// ── Game constants ────────────────────────────────────────────────────────────
 const COLS = 20
 const ROWS = 20
 const CELL = 20
@@ -319,7 +86,7 @@ export default function Game() {
     generation: 1,
     bestScore: 0,
     allDead: false,
-    speed: 8, // frames per second sim
+    speed: 8,
     paused: false,
     manualMode: false,
     manualSnake: null,
@@ -379,7 +146,6 @@ export default function Game() {
     ctx.fillStyle = '#0a0a0a'
     ctx.fillRect(0, 0, W, H)
 
-    // Grid
     ctx.strokeStyle = 'rgba(255,255,255,0.03)'
     ctx.lineWidth = 0.5
     for (let x = 0; x <= COLS; x++) {
@@ -392,7 +158,6 @@ export default function Game() {
     const target = s.manualMode ? s.manualSnake : s.population.find(a => !a.dead) || s.population[0]
     if (!target) return
 
-    // Food
     const [fx, fy] = target.food
     ctx.fillStyle = '#ff4757'
     ctx.shadowColor = '#ff4757'
@@ -402,7 +167,6 @@ export default function Game() {
     ctx.fill()
     ctx.shadowBlur = 0
 
-    // Snake body
     target.body.forEach(([bx, by], i) => {
       const isHead = i === 0
       if (isHead) {
@@ -419,9 +183,8 @@ export default function Game() {
     })
     ctx.shadowBlur = 0
 
-    // Update NN viz every 4 frames
     if (target.brain && target.body.length > 0) {
-      const inputs = target._getInputs()
+      const inputs = target.getInputs()
       target.brain.forward(inputs)
       setNnActivations([...target.brain.activations.map(l => [...l])])
     }
@@ -436,7 +199,6 @@ export default function Game() {
 
       if (s.paused) { render(); return }
 
-      // Skip first frame to avoid huge initial dt
       if (lastTimeRef.current === 0) {
         lastTimeRef.current = timestamp
         render()
@@ -445,7 +207,7 @@ export default function Game() {
 
       const dt = timestamp - lastTimeRef.current
       lastTimeRef.current = timestamp
-      frameAccRef.current += Math.min(dt, 200) // clamp: no spiral-of-death on tab switch
+      frameAccRef.current += Math.min(dt, 200)
 
       const frameDuration = 1000 / s.speed
 
@@ -457,20 +219,17 @@ export default function Game() {
             s.manualSnake.step()
           }
         } else {
-          // Step all alive agents
           let aliveCount = 0
           let bestCurrent = 0
           s.population.forEach(agent => {
             if (!agent.dead) {
               agent.step()
               aliveCount++
-              // Track best score as agents play
               if (agent.score > s.bestScore) s.bestScore = agent.score
               if (agent.score > bestCurrent) bestCurrent = agent.score
             }
           })
 
-          // Check if all dead → next generation
           if (aliveCount === 0) {
             const newPop = evolve(s.population)
             s.population = newPop
@@ -540,10 +299,7 @@ export default function Game() {
 
           {/* Left: game + controls */}
           <div>
-            {/* Stats bar */}
-            <div style={{
-              display: 'flex', gap: '1.5rem', marginBottom: '1rem', flexWrap: 'wrap',
-            }}>
+            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
               {[
                 { label: 'Generation', val: stats.gen },
                 { label: 'Alive', val: `${stats.alive} / ${POP_SIZE}` },
@@ -563,7 +319,6 @@ export default function Game() {
               ))}
             </div>
 
-            {/* Canvas */}
             <div style={{
               border: '1px solid var(--border)',
               borderRadius: 'var(--radius)',
@@ -579,14 +334,13 @@ export default function Game() {
               />
             </div>
 
-            {/* Controls */}
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
               <button
                 className="btn btn-outline"
                 style={{ padding: '0.5rem 1.1rem', fontSize: '0.83rem' }}
                 onClick={handlePause}
               >
-                {paused ? '▶ Resume' : '⏸ Pause'}
+                {paused ? 'Resume' : 'Pause'}
               </button>
 
               <button
@@ -594,7 +348,7 @@ export default function Game() {
                 style={{ padding: '0.5rem 1.1rem', fontSize: '0.83rem' }}
                 onClick={handleReset}
               >
-                ↺ Reset
+                Reset
               </button>
 
               <button
@@ -602,7 +356,7 @@ export default function Game() {
                 style={{ padding: '0.5rem 1.1rem', fontSize: '0.83rem' }}
                 onClick={handleManual}
               >
-                {manualMode ? '🤖 Watch AI' : '🎮 Play Yourself'}
+                {manualMode ? 'Watch AI' : 'Play Yourself'}
               </button>
 
               <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginLeft: 'auto' }}>
@@ -622,7 +376,7 @@ export default function Game() {
                       fontWeight: 600,
                     }}
                   >
-                    {v === 4 ? '1×' : v === 10 ? '3×' : v === 30 ? '8×' : '20×'}
+                    {v === 4 ? '1x' : v === 10 ? '3x' : v === 30 ? '8x' : '20x'}
                   </button>
                 ))}
               </div>
@@ -643,7 +397,7 @@ export default function Game() {
             )}
           </div>
 
-          {/* Right: NN viz + explanation */}
+          {/* Right: NN viz + quick summary */}
           <div style={{ minWidth: 240, maxWidth: 280 }}>
             <div style={{
               border: '1px solid var(--border)',
@@ -670,38 +424,231 @@ export default function Game() {
               padding: '1.25rem',
             }}>
               <h3 style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-dim)', marginBottom: '1rem' }}>
-                How It Works
+                Quick Summary
               </h3>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', lineHeight: 1.8 }}>
                 <p style={{ marginBottom: '0.75rem' }}>
-                  <strong style={{ color: 'var(--text)' }}>Neural Network:</strong> Each snake has an 11→16→4 feedforward network predicting which direction to move.
+                  <strong style={{ color: 'var(--text)' }}>Network:</strong> 11 inputs, 16 hidden (ReLU), 4 outputs (argmax).
                 </p>
                 <p style={{ marginBottom: '0.75rem' }}>
-                  <strong style={{ color: 'var(--text)' }}>Inputs:</strong> Danger ahead/left/right, current heading, food direction.
+                  <strong style={{ color: 'var(--text)' }}>Selection:</strong> Top 15% of {POP_SIZE} agents selected each generation.
                 </p>
                 <p style={{ marginBottom: '0.75rem' }}>
-                  <strong style={{ color: 'var(--text)' }}>Genetic Algorithm:</strong> After all {POP_SIZE} snakes die, the top 15% breed into the next generation via crossover + mutation.
+                  <strong style={{ color: 'var(--text)' }}>Crossover:</strong> Uniform, each weight independently from either parent.
                 </p>
                 <p>
-                  <strong style={{ color: 'var(--text)' }}>Fitness:</strong> steps_alive + score×100 + score²×200
+                  <strong style={{ color: 'var(--text)' }}>Fitness:</strong> steps + score x 100 + score2 x 200
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        <div style={{ marginTop: '3rem', padding: '2rem', border: '1px solid var(--border)', borderRadius: 'var(--radius)', background: 'var(--surface)' }}>
-          <h3 style={{ marginBottom: '1rem', fontSize: '1rem' }}>About This Simulation</h3>
-          <p style={{ color: 'var(--text-dim)', fontSize: '0.88rem', lineHeight: 1.9, maxWidth: 700 }}>
-            This game demonstrates the principles behind <strong style={{ color: 'var(--text)' }}>neuroevolution</strong> —
-            using evolutionary algorithms to train neural networks without backpropagation.
-            Unlike supervised learning, each agent discovers effective behaviour purely through
-            selection pressure: snakes that survive longer and eat more food pass their "genes"
-            (network weights) to the next generation. Over many generations, emergent navigation
-            strategies appear. This is the same paradigm used in OpenAI's early reinforcement
-            learning research and <em>neuroevolution of augmenting topologies</em> (NEAT).
+        {/* ── Deep Explanation ──────────────────────────────────────── */}
+        <div style={{ marginTop: '4rem' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>
+            How It <span style={{ color: 'var(--accent)' }}>Actually Works</span>
+          </h2>
+          <p style={{ color: 'var(--text-dim)', marginBottom: '3rem', maxWidth: 680 }}>
+            A technical deep-dive into every part of this simulation: the neural network,
+            the genetic algorithm, and why this approach works without any labelled data.
           </p>
+
+          <div style={{ display: 'grid', gap: '1.5rem' }}>
+
+            {/* 1 - Neural Network */}
+            <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius)', background: 'var(--surface)', padding: '2rem' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '0.5rem' }}>
+                Part 1
+              </div>
+              <h3 style={{ fontSize: '1.15rem', marginBottom: '1rem' }}>The Neural Network</h3>
+              <p style={{ color: 'var(--text-dim)', lineHeight: 1.9, marginBottom: '1.5rem' }}>
+                Each snake carries a tiny feedforward neural network with three layers: 11 input neurons,
+                16 hidden neurons, and 4 output neurons. At every game tick the network reads the snake's
+                immediate surroundings as numbers, passes them through the layers, and picks the output
+                with the highest value as the next move (argmax).
+              </p>
+
+              <div style={{ overflowX: 'auto', marginBottom: '1.5rem' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                      <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', color: 'var(--text-dim)', fontWeight: 600 }}>Index</th>
+                      <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', color: 'var(--text-dim)', fontWeight: 600 }}>Input</th>
+                      <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', color: 'var(--text-dim)', fontWeight: 600 }}>Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      ['0', 'Danger straight', '1 if wall or body 1 step ahead, else 0'],
+                      ['1', 'Danger right', '1 if wall or body 1 step to relative right'],
+                      ['2', 'Danger left', '1 if wall or body 1 step to relative left'],
+                      ['3', 'Moving left', '1-hot direction flag'],
+                      ['4', 'Moving right', '1-hot direction flag'],
+                      ['5', 'Moving up', '1-hot direction flag'],
+                      ['6', 'Moving down', '1-hot direction flag'],
+                      ['7', 'Food to the left', '1 if food x < head x'],
+                      ['8', 'Food to the right', '1 if food x > head x'],
+                      ['9', 'Food above', '1 if food y < head y'],
+                      ['10', 'Food below', '1 if food y > head y'],
+                    ].map(([idx, input, value]) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                        <td style={{ padding: '0.5rem 0.75rem', color: 'var(--accent)', fontFamily: 'monospace', fontWeight: 600 }}>{idx}</td>
+                        <td style={{ padding: '0.5rem 0.75rem', color: 'var(--text)' }}>{input}</td>
+                        <td style={{ padding: '0.5rem 0.75rem', color: 'var(--text-dim)' }}>{value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                {[
+                  { label: 'Hidden activation', value: 'ReLU (max(0, x))' },
+                  { label: 'Output activation', value: 'Linear (no squash)' },
+                  { label: 'Decision', value: 'Argmax of 4 outputs' },
+                  { label: 'Weight init', value: 'He initialisation' },
+                ].map(({ label, value }) => (
+                  <div key={label} style={{ padding: '0.75rem 1rem', background: 'rgba(0,229,255,0.04)', border: '1px solid rgba(0,229,255,0.1)', borderRadius: 'var(--radius-sm)' }}>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.25rem' }}>{label}</div>
+                    <div style={{ fontSize: '0.88rem', color: 'var(--accent)', fontFamily: 'monospace' }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 2 - Genetic Algorithm */}
+            <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius)', background: 'var(--surface)', padding: '2rem' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '0.5rem' }}>
+                Part 2
+              </div>
+              <h3 style={{ fontSize: '1.15rem', marginBottom: '1rem' }}>The Genetic Algorithm</h3>
+              <p style={{ color: 'var(--text-dim)', lineHeight: 1.9, marginBottom: '1.5rem' }}>
+                No gradients. No loss function. Instead, the process mimics natural selection:
+                the snakes that survive longest and eat the most food are treated as the "fittest"
+                and their network weights are used to produce the next generation.
+              </p>
+
+              <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                {[
+                  {
+                    step: '1',
+                    title: 'Score every snake',
+                    body: 'When all 150 snakes have died, each one is assigned a fitness value based on how long it survived and how many apples it ate.',
+                  },
+                  {
+                    step: '2',
+                    title: 'Rank and select the elite',
+                    body: 'Snakes are sorted by fitness. The top 15% (about 22 snakes) become the breeding pool. The rest are discarded.',
+                  },
+                  {
+                    step: '3',
+                    title: 'Elitism - keep the best',
+                    body: 'The single highest-scoring brain is copied unchanged into the next generation. This ensures the best solution never gets lost.',
+                  },
+                  {
+                    step: '4',
+                    title: 'Crossover',
+                    body: 'Two elite parents are randomly chosen. For each weight in the child network, there is a 50% chance it comes from parent A and 50% from parent B. This mixes successful strategies.',
+                  },
+                  {
+                    step: '5',
+                    title: 'Mutation',
+                    body: 'After crossover, each weight has a 12% chance of being perturbed by a small random amount (standard deviation 0.3). This introduces new variation the selection pressure can act on.',
+                  },
+                ].map(({ step, title, body }) => (
+                  <div key={step} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                    <div style={{
+                      flexShrink: 0, width: 28, height: 28, borderRadius: '50%',
+                      background: 'var(--accent-dim)', border: '1px solid var(--accent)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent)',
+                    }}>
+                      {step}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.88rem', marginBottom: '0.25rem' }}>{title}</div>
+                      <div style={{ color: 'var(--text-dim)', fontSize: '0.82rem', lineHeight: 1.8 }}>{body}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 3 - Fitness Formula */}
+            <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius)', background: 'var(--surface)', padding: '2rem' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '0.5rem' }}>
+                Part 3
+              </div>
+              <h3 style={{ fontSize: '1.15rem', marginBottom: '1rem' }}>The Fitness Formula</h3>
+              <div style={{
+                fontFamily: 'monospace', fontSize: '1rem',
+                padding: '1rem 1.25rem',
+                background: 'rgba(0,229,255,0.05)',
+                border: '1px solid rgba(0,229,255,0.15)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--accent)',
+                marginBottom: '1.5rem',
+              }}>
+                fitness = steps + (score x 100) + (score^2 x 200)
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                {[
+                  {
+                    term: 'steps',
+                    why: 'Rewards snakes that stay alive longer, even if they are not finding food. This prevents the algorithm from selecting snakes that die immediately.',
+                  },
+                  {
+                    term: 'score x 100',
+                    why: 'Strongly rewards eating food. A snake that eats one apple is vastly preferred over one that just wanders.',
+                  },
+                  {
+                    term: 'score^2 x 200',
+                    why: 'The quadratic term creates exponentially larger rewards for consecutive apples. A snake that eats 5 apples is not just 5x better - it earns 5x5x200 = 5000 bonus points. This incentivises consistent performance over lucky one-off finds.',
+                  },
+                ].map(({ term, why }) => (
+                  <div key={term} style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                    <div style={{ fontFamily: 'monospace', color: 'var(--accent)', fontWeight: 700, marginBottom: '0.5rem' }}>{term}</div>
+                    <div style={{ color: 'var(--text-dim)', fontSize: '0.82rem', lineHeight: 1.8 }}>{why}</div>
+                  </div>
+                ))}
+              </div>
+              <p style={{ color: 'var(--text-dim)', fontSize: '0.82rem', lineHeight: 1.8, marginTop: '1rem' }}>
+                There is also a starvation limit: a snake dies if it goes {100} + (score x 50) steps without eating.
+                This prevents snakes from learning to circle endlessly to rack up survival time without ever seeking food.
+              </p>
+            </div>
+
+            {/* 4 - Why No Backprop */}
+            <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius)', background: 'var(--surface)', padding: '2rem' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '0.5rem' }}>
+                Part 4
+              </div>
+              <h3 style={{ fontSize: '1.15rem', marginBottom: '1rem' }}>Why No Backpropagation?</h3>
+              <p style={{ color: 'var(--text-dim)', lineHeight: 1.9, marginBottom: '1rem' }}>
+                Standard deep learning trains networks by computing a loss, differentiating it through
+                the network (backprop), and nudging weights in the direction that reduces error.
+                This requires labelled training data and a differentiable objective.
+              </p>
+              <p style={{ color: 'var(--text-dim)', lineHeight: 1.9, marginBottom: '1rem' }}>
+                Neuroevolution sidesteps both requirements. There is no labelled data - just a score.
+                There is no gradient - just selection pressure. This makes it useful for environments
+                where defining a differentiable loss is hard, or where the reward signal is sparse
+                and delayed (like snake, where eating food might happen 100 steps after the decision
+                that caused it).
+              </p>
+              <p style={{ color: 'var(--text-dim)', lineHeight: 1.9 }}>
+                This is the same paradigm used in early OpenAI reinforcement learning research,
+                in neuroevolution of augmenting topologies (NEAT), and in some game-playing agents.
+                The tradeoff is sample efficiency: gradient-based methods typically need far fewer
+                evaluations to converge. But for small networks and simple environments like this one,
+                neuroevolution is fast, simple, and produces visually compelling emergent behaviour.
+              </p>
+            </div>
+
+          </div>
         </div>
+
       </div>
     </main>
   )
