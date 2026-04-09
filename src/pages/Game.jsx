@@ -150,6 +150,7 @@ class SnakeAgent {
   }
 
   think() {
+    if (!this.brain) return  // manual play — direction set by keyboard
     const inputs = this._getInputs()
     const out = this.brain.forward(inputs)
     // out: [up, down, left, right]
@@ -435,9 +436,16 @@ export default function Game() {
 
       if (s.paused) { render(); return }
 
+      // Skip first frame to avoid huge initial dt
+      if (lastTimeRef.current === 0) {
+        lastTimeRef.current = timestamp
+        render()
+        return
+      }
+
       const dt = timestamp - lastTimeRef.current
       lastTimeRef.current = timestamp
-      frameAccRef.current += dt
+      frameAccRef.current += Math.min(dt, 200) // clamp: no spiral-of-death on tab switch
 
       const frameDuration = 1000 / s.speed
 
@@ -456,32 +464,27 @@ export default function Game() {
             if (!agent.dead) {
               agent.step()
               aliveCount++
+              // Track best score as agents play
+              if (agent.score > s.bestScore) s.bestScore = agent.score
               if (agent.score > bestCurrent) bestCurrent = agent.score
             }
           })
 
-          if (s.population[0]?.score > s.bestScore) {
-            s.bestScore = s.population[0].score
-          }
-
-          // Check if all dead
+          // Check if all dead → next generation
           if (aliveCount === 0) {
-            if (s.bestScore < bestCurrent) s.bestScore = bestCurrent
             const newPop = evolve(s.population)
-            const realBest = Math.max(s.bestScore, ...newPop.map(a => 0))
             s.population = newPop
             s.generation++
             aliveCount = POP_SIZE
             setStats({ gen: s.generation, alive: aliveCount, best: s.bestScore, current: 0 })
           } else {
             const leader = s.population.find(a => !a.dead)
-            setStats(prev => ({
-              ...prev,
+            setStats({
               gen: s.generation,
               alive: aliveCount,
               best: s.bestScore,
               current: leader ? leader.score : 0,
-            }))
+            })
           }
         }
       }

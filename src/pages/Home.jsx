@@ -136,47 +136,72 @@ function Typewriter() {
 }
 
 // ── Page ───────────────────────────────────────────────────────────────────
+// Drop your photo at public/assets/photo.jpg — it will appear here automatically
+const PHOTO_SRC = '/assets/photo.jpg'
+
 export default function Home() {
+  const [photoLoaded, setPhotoLoaded] = useState(false)
+
   return (
     <main>
       <section className="hero">
         <ParticleCanvas />
         <div className="container">
-          <div className="hero-content">
-            <div className="hero-badge">
-              <span className="dot" />
-              <Typewriter />
+          <div className="hero-layout">
+            {/* Left: text content */}
+            <div className="hero-content">
+              <div className="hero-badge">
+                <span className="dot" />
+                <Typewriter />
+              </div>
+
+              <h1>
+                I'm <span className="name">Timilehin</span>,<br />
+                Building the Future
+              </h1>
+
+              <p className="tagline">
+                Results-driven AI/ML Developer with expertise in designing and deploying
+                machine learning solutions — fine-tuned LLMs, computer vision systems,
+                and production RAG pipelines.
+              </p>
+
+              <div className="hero-cta">
+                <Link to="/projects" className="btn btn-primary">View Projects</Link>
+                <Link to="/contact" className="btn btn-outline">Get in Touch</Link>
+              </div>
+
+              <div className="social-links">
+                <a href="https://github.com/secretlyincontrol2" target="_blank" rel="noreferrer">
+                  ↗ GitHub
+                </a>
+                <a href="https://www.linkedin.com/in/timilehin-adedayo-2697a431a/" target="_blank" rel="noreferrer">
+                  ↗ LinkedIn
+                </a>
+                <a href="https://huggingface.co/santacl" target="_blank" rel="noreferrer">
+                  ↗ Hugging Face
+                </a>
+              </div>
             </div>
 
-            <h1>
-              I'm <span className="name">Timilehin</span>,<br />
-              Building the Future
-            </h1>
-
-            <p className="tagline">
-              Results-driven AI/ML Developer with expertise in designing and deploying
-              machine learning solutions — fine-tuned LLMs, computer vision systems,
-              and production RAG pipelines.
-            </p>
-
-            <div className="hero-cta">
-              <Link to="/projects" className="btn btn-primary">View Projects</Link>
-              <Link to="/contact" className="btn btn-outline">Get in Touch</Link>
+            {/* Right: photo with glow ring */}
+            <div className="hero-photo-wrap">
+              <div className="hero-photo-ring">
+                <img
+                  src={PHOTO_SRC}
+                  alt="Timilehin Adedayo"
+                  className="hero-photo"
+                  onLoad={() => setPhotoLoaded(true)}
+                  onError={e => { e.target.style.display = 'none' }}
+                />
+                {!photoLoaded && (
+                  <div className="hero-photo-placeholder">T</div>
+                )}
+              </div>
             </div>
+          </div>
 
-            <div className="social-links">
-              <a href="https://github.com/secretlyincontrol2" target="_blank" rel="noreferrer">
-                ↗ GitHub
-              </a>
-              <a href="https://www.linkedin.com/in/timilehin-adedayo-2697a431a/" target="_blank" rel="noreferrer">
-                ↗ LinkedIn
-              </a>
-              <a href="https://huggingface.co/santacl" target="_blank" rel="noreferrer">
-                ↗ Hugging Face
-              </a>
-            </div>
-
-            <div className="hero-stats">
+          <div className="hero-stats">
               <div className="stat-item">
                 <div className="stat-number">5</div>
                 <div className="stat-label">Projects Shipped</div>
@@ -195,7 +220,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
       </section>
 
       {/* Quick intro section */}
