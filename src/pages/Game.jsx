@@ -712,13 +712,13 @@ export default function Game() {
             style={tabStyle(activeTab === 'neat')}
             onClick={() => handleTabSwitch('neat')}
           >
-            🧬 NEAT (Neuroevolution)
+            NEAT (Neuroevolution)
           </button>
           <button
             style={tabStyle(activeTab === 'dqn')}
             onClick={() => handleTabSwitch('dqn')}
           >
-            🧠 DQN (Deep Q-Learning)
+            DQN (Deep Q-Learning)
           </button>
         </div>
 

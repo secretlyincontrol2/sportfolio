@@ -1,10 +1,10 @@
 import ScrollReveal from '../components/ScrollReveal'
 
 const links = [
-  { icon: '✉️', label: 'timilehinadedayo@gmail.com', href: 'mailto:timilehinadedayo@gmail.com' },
-  { icon: '🐙', label: 'github.com/secretlyincontrol2', href: 'https://github.com/secretlyincontrol2' },
-  { icon: '💼', label: 'LinkedIn', href: 'https://www.linkedin.com/in/timilehin-adedayo-2697a431a/' },
-  { icon: '🤗', label: 'Hugging Face', href: 'https://huggingface.co/santacl' },
+  { icon: '', label: 'timilehinadedayo@gmail.com', href: 'mailto:timilehinadedayo@gmail.com' },
+  { icon: '', label: 'github.com/secretlyincontrol2', href: 'https://github.com/secretlyincontrol2' },
+  { icon: '', label: 'LinkedIn', href: 'https://www.linkedin.com/in/timilehin-adedayo-2697a431a/' },
+  { icon: '', label: 'Hugging Face', href: 'https://huggingface.co/santacl' },
 ]
 
 export default function Contact() {
