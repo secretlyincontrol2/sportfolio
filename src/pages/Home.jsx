@@ -203,7 +203,7 @@ export default function Home() {
       <section className="section" style={{ borderTop: '1px solid var(--border)', paddingTop: '4rem' }}>
         <div className="container">
           <ScrollReveal>
-            <h2 style={{ marginBottom: '3rem', fontSize: '1.6rem', color: 'var(--text-dim)', fontWeight: 400 }}>
+            <h2 style={{ marginBottom: '3rem', fontSize: '1.6rem', color: 'var(--accent)', fontWeight: 400, textAlign: 'center' }}>
               What I build
             </h2>
           </ScrollReveal>
@@ -236,13 +236,7 @@ export default function Home() {
       {/* ── Live Neural Snake AI ── */}
       <section className="section" style={{ borderTop: '1px solid var(--border)', paddingTop: '4rem' }}>
         <div className="container">
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'auto 1fr',
-            gap: '4rem',
-            alignItems: 'center',
-          }}
-          className="snake-home-grid"
+          <div className="snake-home-grid"
           >
             {/* Live game */}
             <ScrollReveal>
@@ -256,21 +250,20 @@ export default function Home() {
                   Live Demo
                 </div>
                 <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>
-                  Neural Snake AI
+                  NEAT Snake AI
                 </h2>
                 <p style={{ color: 'var(--text-dim)', marginBottom: '1.5rem', lineHeight: 1.9 }}>
-                  This is a real neural network running live in your browser. 100 AI agents play
-                  snake simultaneously, each controlled by a feedforward neural network. When they
-                  all die, a <strong style={{ color: 'var(--text)' }}>genetic algorithm</strong> selects
-                  the best performers, breeds them together, and starts the next generation.
+                  A real neural network running live in your browser, powered by
+                  <strong style={{ color: 'var(--text)' }}> NEAT (NeuroEvolution of Augmenting Topologies)</strong>.
+                  100 AI agents play snake simultaneously. Unlike fixed networks, NEAT evolves both
+                  the <em>structure</em> and <em>weights</em>, growing new neurons over time.
                 </p>
                 <p style={{ color: 'var(--text-dim)', marginBottom: '2rem', lineHeight: 1.9 }}>
-                  No backpropagation. No labelled data. The network learns purely through
-                  <strong style={{ color: 'var(--text)' }}> survival pressure</strong>: the same
-                  principle used in OpenAI's early reinforcement learning research.
+                  No backpropagation. No labelled data. Speciation protects innovation while
+                  selection pressure drives increasingly intelligent behaviour.
                 </p>
                 <Link to="/game" className="btn btn-outline" style={{ display: 'inline-block' }}>
-                  Play it yourself →
+                  Explore NEAT
                 </Link>
               </div>
             </ScrollReveal>

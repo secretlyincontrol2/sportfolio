@@ -1,77 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
-import { SnakeAgent, evolve } from '../game/engine'
+import { getSimulation } from '../game/simulation'
 
 // ── Shared live widget ────────────────────────────────────────────────────
-// Connects to the WebSocket server so every visitor sees the same simulation.
-// Falls back to a local simulation instantly (no black canvas) if the server
-// is cold-starting or unavailable, and auto-reconnects every 4 seconds.
+// Renders the deterministic NEAT simulation that is synchronized across
+// all visitors via time-based seeding. No server needed.
 
 const COLS = 20
 const ROWS = 20
 const CELL = 14   // 20*14 = 280px canvas
-const POP  = 100  // local fallback population
-const FPS  = 10
-
-const WS_URL = import.meta.env.VITE_WS_URL ?? 'ws://localhost:3001'
 
 export default function SnakeWidget({ showStats = true }) {
   const canvasRef     = useRef(null)
-  const stateRef      = useRef({ pop: [], gen: 1, bestScore: 0 })
-  const frameRef      = useRef(null)    // latest server frame | null when local
-  const modeRef       = useRef('local') // 'local' | 'live'
   const animRef       = useRef(null)
-  const lastRef       = useRef(0)
-  const accumRef      = useRef(0)
   const statsTimerRef = useRef(0)
 
-  const [stats, setStats] = useState({ gen: 1, best: 0, score: 0, viewers: 0, live: false })
+  const [stats, setStats] = useState({ gen: 1, best: 0, score: 0, species: 0 })
 
-  // ── WebSocket connection ────────────────────────────────────────────────
+  // ── Render loop ─────────────────────────────────────────────────────────
   useEffect(() => {
-    let ws = null
-    let reconnectTimer = null
-
-    function connect() {
-      try {
-        ws = new WebSocket(WS_URL)
-      } catch {
-        reconnectTimer = setTimeout(connect, 4000)
-        return
-      }
-
-      ws.onopen = () => {
-        modeRef.current = 'live'
-      }
-
-      ws.onmessage = (e) => {
-        // Ref assignment only — no setState, no re-render on every message.
-        // The rAF loop reads this ref and updates stats at a throttled 10fps.
-        frameRef.current = JSON.parse(e.data)
-      }
-
-      ws.onclose = () => {
-        accumRef.current = 0  // prevent burst of local ticks on reconnect
-        modeRef.current = 'local'
-        frameRef.current = null
-        reconnectTimer = setTimeout(connect, 4000)
-      }
-
-      ws.onerror = () => {}   // onclose fires after onerror
-    }
-
-    connect()
-
-    return () => {
-      ws?.close()
-      clearTimeout(reconnectTimer)
-    }
-  }, [])
-
-  // ── Render + simulation loop ────────────────────────────────────────────
-  useEffect(() => {
-    // Init local fallback immediately so canvas is never blank
-    stateRef.current.pop = Array.from({ length: POP }, () => new SnakeAgent(COLS, ROWS))
-
+    const sim = getSimulation()
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
@@ -90,6 +37,8 @@ export default function SnakeWidget({ showStats = true }) {
     }
 
     function drawSnakeAndFood(snake, food) {
+      if (!snake || !food) return
+
       const [fx, fy] = food
       ctx.fillStyle = '#ff4757'
       ctx.shadowColor = '#ff4757'
@@ -116,78 +65,44 @@ export default function SnakeWidget({ showStats = true }) {
       ctx.shadowBlur = 0
     }
 
-    function loop(ts) {
-      animRef.current = requestAnimationFrame(loop)
+    function render() {
+      animRef.current = requestAnimationFrame(render)
 
-      if (lastRef.current === 0) { lastRef.current = ts; return }
-      const dt = ts - lastRef.current
-      lastRef.current = ts
-      accumRef.current += Math.min(dt, 150)
-
-      const stepMs = 1000 / FPS
-      while (accumRef.current >= stepMs) {
-        accumRef.current -= stepMs
-
-        // Only advance local sim when it is the active display source
-        if (modeRef.current === 'local') {
-          const s = stateRef.current
-          let alive = 0
-          s.pop.forEach(agent => {
-            if (!agent.dead) {
-              agent.step()
-              alive++
-              if (agent.score > s.bestScore) s.bestScore = agent.score
-            }
-          })
-          if (alive === 0) {
-            s.pop = evolve(s.pop)
-            s.gen++
-          }
-        }
-      }
+      const frame = sim.getCurrentFrame()
+      if (!frame) return
 
       // ── Draw ──
       ctx.fillStyle = '#0a0a0a'
       ctx.fillRect(0, 0, W, H)
       drawGrid()
+      drawSnakeAndFood(frame.snake, frame.food)
 
-      if (modeRef.current === 'live' && frameRef.current) {
-        const f = frameRef.current
-        drawSnakeAndFood(f.snake, f.food)
-      } else {
-        const s = stateRef.current
-        const leader = s.pop.find(a => !a.dead) || s.pop[0]
-        if (leader) drawSnakeAndFood(leader.body, leader.food)
-      }
-
-      // ── Stats — rate-limited to 10fps to avoid 60fps re-renders ──
+      // Stats - rate-limited to 10fps
       const now = performance.now()
       if (now - statsTimerRef.current >= 100) {
         statsTimerRef.current = now
-        if (modeRef.current === 'live' && frameRef.current) {
-          const f = frameRef.current
-          setStats({ gen: f.gen, best: f.best, score: f.score, viewers: f.viewers, live: true })
-        } else {
-          const s = stateRef.current
-          const leader = s.pop.find(a => !a.dead)
-          setStats({ gen: s.gen, best: s.bestScore, score: leader?.score ?? 0, viewers: 0, live: false })
-        }
+        setStats({
+          gen:     frame.gen,
+          best:    frame.best,
+          score:   frame.score,
+          species: frame.species,
+        })
       }
     }
 
-    animRef.current = requestAnimationFrame(loop)
+    animRef.current = requestAnimationFrame(render)
     return () => cancelAnimationFrame(animRef.current)
   }, [])
 
   return (
-    <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '0.75rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxWidth: COLS * CELL, width: '100%' }}>
       {showStats && (
-        <div style={{ display: 'flex', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           {[
             { label: 'Generation', val: stats.gen },
             { label: 'Best Score', val: stats.best },
             { label: 'Live Score', val: stats.score },
-            ...(stats.live ? [{ label: 'Watching', val: stats.viewers }] : []),
+            { label: 'Species', val: stats.species },
           ].map(({ label, val }) => (
             <div key={label}>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</div>
@@ -208,23 +123,20 @@ export default function SnakeWidget({ showStats = true }) {
           ref={canvasRef}
           width={COLS * CELL}
           height={ROWS * CELL}
-          style={{ display: 'block' }}
+          style={{ display: 'block', width: '100%', height: 'auto' }}
         />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         <span style={{
           width: 6, height: 6, borderRadius: '50%',
-          background: stats.live ? '#2ed573' : 'var(--accent)',
+          background: '#2ed573',
           display: 'inline-block',
           animation: 'pulse 2s infinite',
           flexShrink: 0,
         }} />
         <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
-          {stats.live
-            ? `SHARED LIVE · ${stats.viewers} watching`
-            : 'LOCAL · Neural Snake AI evolving'
-          }
+          SYNCED LIVE · NEAT evolving · Gen {stats.gen}
         </span>
       </div>
     </div>

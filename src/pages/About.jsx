@@ -5,9 +5,9 @@ const skills = [
   {
     group: 'AI / ML',
     items: [
+      { name: 'Computer Vision (Swin / Grad-CAM++)', pct: 95 },
       { name: 'LLM Fine-tuning (PEFT/QLoRA)', pct: 92 },
       { name: 'RAG Architecture & Neo4j', pct: 90 },
-      { name: 'Computer Vision (Swin Transformer)', pct: 85 },
       { name: 'NLP & Prompt Engineering', pct: 88 },
     ],
   },
@@ -17,7 +17,7 @@ const skills = [
       { name: 'Python / FastAPI', pct: 93 },
       { name: 'PyTorch / TensorFlow', pct: 87 },
       { name: 'Docker & Cloud Deployment', pct: 80 },
-      { name: 'React / Vite / TypeScript', pct: 75 },
+      { name: 'Git & Version Control', pct: 82 },
     ],
   },
 ]
@@ -104,7 +104,7 @@ export default function About() {
                   'Python', 'FastAPI', 'SQLAlchemy', 'Pydantic',
                   'PyTorch', 'TensorFlow', 'Scikit-Learn', 'Transformers',
                   'Neo4j Aura', 'PostgreSQL', 'FAISS', 'Cypher',
-                  'React', 'Vite', 'TailwindCSS',
+                  'OpenCV', 'Grad-CAM++', 'YOLO',
                   'Docker', 'Vercel', 'Railway', 'Render',
                   'Hugging Face', 'PEFT', 'QLoRA', 'Accelerate',
                 ].map(tag => (

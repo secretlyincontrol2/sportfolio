@@ -1,5 +1,10 @@
-// ─── Shared Neural Snake AI Engine ───────────────────────────────────────
-// Used by both the full Game page and the always-running SnakeWidget.
+// ─── Shared Snake AI Engine ──────────────────────────────────────────────
+// Provides the SnakeAgent game logic. The brain can be either:
+//  - A legacy NeuralNet (fixed topology, for manual mode backup)
+//  - A NEAT genome's network (variable topology, for the main simulation)
+//  - null (manual / human-controlled mode)
+//
+// Also exports the legacy NeuralNet + evolve() for backward compat.
 
 export const DIRS = [
   [0, -1], // up
@@ -8,8 +13,8 @@ export const DIRS = [
   [1,  0], // right
 ]
 
-// ─── Neural Network ───────────────────────────────────────────────────────
-// Architecture: 11 inputs → 16 hidden (ReLU) → 4 outputs (linear, argmax)
+// ─── Legacy Neural Network (fixed topology) ───────────────────────────────
+// Architecture: 11 inputs -> 16 hidden (ReLU) -> 4 outputs (linear, argmax)
 //
 // Inputs (11):
 //  [0] danger straight   - wall or body 1 step ahead
@@ -104,12 +109,71 @@ export class NeuralNet {
   }
 }
 
+// ─── PyTorch Q-Learning Model (Deep Q-Network) ────────────────────────────
+// Directly mathematically translates the linear model from `model.py` in PyTorch.
+// Architecture: 11 state inputs -> 256 Hidden (ReLU) -> 3 Q-value outputs (Straight, Right, Left)
+// This enables loading state_dict JSON weights trained via python backend.
+
+export class PyTorchQNet {
+  constructor(weightsJson = null) {
+    this.hiddenSize = 256
+    this.inputSize = 11
+    this.outputSize = 3
+
+    if (weightsJson) {
+      // Load directly from PyTorch state_dict export
+      this.l1_weight = weightsJson['linear1.weight']
+      this.l1_bias = weightsJson['linear1.bias']
+      this.l2_weight = weightsJson['linear2.weight']
+      this.l2_bias = weightsJson['linear2.bias']
+    } else {
+      // Initialize mathematically identical to PyTorch nn.Linear to prevent NaNs
+      const kaiming1 = Math.sqrt(1 / this.inputSize)
+      this.l1_weight = Array.from({ length: this.hiddenSize }, () => 
+        Array.from({ length: this.inputSize }, () => (Math.random() * 2 - 1) * kaiming1))
+      this.l1_bias = Array.from({ length: this.hiddenSize }, () => (Math.random() * 2 - 1) * kaiming1)
+
+      const kaiming2 = Math.sqrt(1 / this.hiddenSize)
+      this.l2_weight = Array.from({ length: this.outputSize }, () => 
+        Array.from({ length: this.hiddenSize }, () => (Math.random() * 2 - 1) * kaiming2))
+      this.l2_bias = Array.from({ length: this.outputSize }, () => (Math.random() * 2 - 1) * kaiming2)
+    }
+  }
+
+  // Exact duplicate of PyTorch Linear_QNet forward pass
+  forward(inputs) {
+    const hidden = new Array(this.hiddenSize).fill(0)
+    for (let i = 0; i < this.hiddenSize; i++) {
+      let val = this.l1_bias[i]
+      for (let j = 0; j < this.inputSize; j++) {
+        val += this.l1_weight[i][j] * inputs[j]
+      }
+      hidden[i] = Math.max(0, val) // F.relu(self.linear1(x))
+    }
+
+    const output = new Array(this.outputSize).fill(0)
+    for (let i = 0; i < this.outputSize; i++) {
+      let val = this.l2_bias[i]
+      for (let j = 0; j < this.hiddenSize; j++) {
+        val += this.l2_weight[i][j] * hidden[j]
+      }
+      output[i] = val // self.linear2(x) - raw Q-Values
+    }
+    return output
+  }
+}
+
 // ─── Snake Agent ──────────────────────────────────────────────────────────
+// Now accepts an optional seeded RNG for deterministic food placement.
+//
+// NEAT mode uses RELATIVE outputs: [straight, turn-left, turn-right]
+// This avoids the 180-turn deadlock that absolute directions cause.
 export class SnakeAgent {
-  constructor(cols, rows, brain = null) {
+  constructor(cols, rows, brain = null, rng = null) {
     this.cols = cols
     this.rows = rows
-    this.brain = brain || new NeuralNet([11, 16, 4])
+    this.brain = brain || null
+    this._rng = rng  // seeded RNG for deterministic mode, null = Math.random
     this.reset()
   }
 
@@ -124,16 +188,99 @@ export class SnakeAgent {
     this.stepsWithoutFood = 0
     this.dead = false
     this.fitness = 0
+    this._prevDist = this._foodDist()
   }
 
   _placeFood() {
+    const rand = this._rng ? () => this._rng.random() : Math.random
     while (true) {
-      const x = Math.floor(Math.random() * this.cols)
-      const y = Math.floor(Math.random() * this.rows)
+      const x = Math.floor(rand() * this.cols)
+      const y = Math.floor(rand() * this.rows)
       if (!this.body.some(([bx, by]) => bx === x && by === y)) return [x, y]
     }
   }
 
+  _foodDist() {
+    const [hx, hy] = this.body[0]
+    const [fx, fy] = this.food
+    return Math.abs(hx - fx) + Math.abs(hy - fy)
+  }
+
+  _castRay(rayDx, rayDy) {
+    let [x, y] = this.body[0]
+    let dist = 0
+    let hitFood = false
+    let hitBody = false
+    let foodDist = 0
+    let bodyDist = 0
+
+    rayDx = Math.sign(rayDx)
+    rayDy = Math.sign(rayDy)
+
+    while (true) {
+      x += rayDx
+      y += rayDy
+      dist++
+
+      if (x < 0 || x >= this.cols || y < 0 || y >= this.rows) {
+        break // Wall hit
+      }
+
+      if (!hitFood && x === this.food[0] && y === this.food[1]) {
+        hitFood = true
+        foodDist = dist
+      }
+
+      if (!hitBody && this.body.some(([bx, by], i) => i > 0 && bx === x && by === y)) {
+        hitBody = true
+        bodyDist = dist
+      }
+    }
+
+    return {
+      wallDist: 1 / dist,
+      foodDist: hitFood ? 1 / foodDist : 0,
+      bodyDist: hitBody ? 1 / bodyDist : 0,
+      hitPoint: [x, y], // where it hit the wall
+      dist,
+    }
+  }
+
+  // Ray-cast vision system: 5 directions x 3 features + 1 bias = 16 inputs
+  getAdvancedInputs() {
+    const [dx, dy] = this.dir
+
+    // Relative directional vectors
+    const dirs = [
+      [dx, dy],                // Straight
+      [dx + dy, dy - dx],      // Front-Left
+      [dy, -dx],               // Left
+      [dx - dy, dy + dx],      // Front-Right
+      [-dy, dx],               // Right
+    ]
+
+    const inputs = []
+    this.rays = []
+
+    for (const d of dirs) {
+      const ray = this._castRay(d[0], d[1])
+      inputs.push(ray.wallDist, ray.foodDist, ray.bodyDist)
+      this.rays.push({ dx: d[0], dy: d[1], ...ray })
+    }
+
+    // Global food vector (so it's not blind when food is between rays)
+    const foodDx = this.food[0] - this.body[0][0]
+    const foodDy = this.food[1] - this.body[0][1]
+    const rightDir = [-dy, dx]
+    const dotForward = foodDx * dx + foodDy * dy
+    const dotRight = foodDx * rightDir[0] + foodDy * rightDir[1]
+
+    inputs.push(dotForward / this.cols, dotRight / this.cols)
+    inputs.push(1) // Bias
+    return inputs
+  }
+
+  // Original absolute inputs (kept for legacy NeuralNet compatibility)
   getInputs() {
     const [hx, hy] = this.body[0]
     const [dx, dy] = this.dir
@@ -168,19 +315,56 @@ export class SnakeAgent {
 
   think() {
     if (!this.brain) return // manual mode
-    const inputs = this.getInputs()
+    
+    // Is this the 11-input PyTorch DQN or 11-input Legacy NeuralNet?
+    const isPyTorch = this.brain instanceof PyTorchQNet
+
+    // Fall back to legacy getInputs() for non-NEAT 11-nodes
+    const inputs = this.brain.inputSize === 11 || isPyTorch ? this.getInputs() : this.getAdvancedInputs()
     const out = this.brain.forward(inputs)
     const argmax = out.indexOf(Math.max(...out))
-    const newDir = DIRS[argmax]
-    if (newDir[0] !== -this.dir[0] || newDir[1] !== -this.dir[1]) {
+
+    if (isPyTorch) {
+      // PyTorch Action map: [Straight, Right Turn, Left Turn]
+      const clock_wise = [
+        [1, 0],  // right
+        [0, 1],  // down
+        [-1, 0], // left
+        [0, -1]  // up
+      ]
+      const idx = clock_wise.findIndex(d => d[0] === this.dir[0] && d[1] === this.dir[1])
+      
+      let newDir = this.dir
+      if (argmax === 1) {
+        newDir = clock_wise[(idx + 1) % 4] // right
+      } else if (argmax === 2) {
+        newDir = clock_wise[(idx + 3) % 4] // left ((idx - 1) % 4 resolves to +3)
+      }
       this.dir = newDir
+
+    } else {
+      // Legacy Genetic NeuralNet and NEAT (which now relies on simulation's explicit forward passes anyway)
+      const newDir = DIRS[argmax]
+      if (newDir[0] !== -this.dir[0] || newDir[1] !== -this.dir[1]) {
+        this.dir = newDir
+      }
     }
   }
 
+  /** Step with think() - used by legacy GA mode */
   step() {
     if (this.dead) return
     this.think()
+    this._move()
+  }
 
+  /** Step without think() - used by NEAT simulation which calls forward() externally */
+  stepNoThink() {
+    if (this.dead) return
+    this._move()
+  }
+
+  _move() {
     const [hx, hy] = this.body[0]
     const [dx, dy] = this.dir
     const nx = hx + dx
@@ -205,28 +389,25 @@ export class SnakeAgent {
       this.score++
       this.stepsWithoutFood = 0
       this.food = this._placeFood()
+      this._prevDist = this._foodDist()
     } else {
       this.body.pop()
+      // Track distance change for fitness shaping
+      const newDist = this._foodDist()
+      this._closerCount = (this._closerCount || 0) + (newDist < this._prevDist ? 1 : 0)
+      this._prevDist = newDist
     }
   }
 
-  // Fitness: reward survival + food heavily, penalise looping
+  // Fitness: heavily reward food, penalise spinning/stalling
   calcFitness() {
     this.fitness = this.steps + this.score * 100 + this.score * this.score * 200
     return this.fitness
   }
 }
 
-// ─── Genetic Algorithm ────────────────────────────────────────────────────
-// Steps each generation:
-//  1. Score every snake with calcFitness()
-//  2. Sort descending by fitness
-//  3. Elitism: copy best brain unchanged into next gen
-//  4. Select top 15% as breeding pool
-//  5. Fill rest with uniform crossover of two random parents + mutation
-//
-// Mutation: each weight has 12% chance of Gaussian perturbation (σ=0.3)
-
+// ─── Legacy Genetic Algorithm ─────────────────────────────────────────────
+// Kept for backward compat (manual/local mode on the Game page).
 export function evolve(population) {
   population.forEach(s => s.calcFitness())
   population.sort((a, b) => b.fitness - a.fitness)

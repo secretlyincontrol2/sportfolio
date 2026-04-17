@@ -532,9 +532,11 @@ img { max-width: 100%; display: block; }
   padding-top: 2.5rem;
   border-top: 1px solid var(--border);
   flex-wrap: wrap;
+  justify-content: center;
+  text-align: center;
 }
 
-.stat-item { }
+.stat-item { text-align: center; }
 .stat-number {
   font-family: 'Outfit', sans-serif;
   font-size: 2rem;
@@ -758,6 +760,46 @@ img { max-width: 100%; display: block; }
   }
 }
 
+/* ─── Game Page Layout ─── */
+.game-stats-bar {
+  display: flex;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.game-stat-item {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  min-width: 70px;
+  text-align: center;
+}
+
+.game-stat-label {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.15rem;
+}
+
+.game-stat-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.game-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2rem;
+  align-items: start;
+}
+
 /* ─── Responsive ─── */
 @media (max-width: 768px) {
   .menu-toggle { display: flex; }
@@ -783,7 +825,7 @@ img { max-width: 100%; display: block; }
   .hero { padding: 6rem 0 4rem; }
   .hero h1 { font-size: 2.4rem; }
   .hero .tagline { font-size: 1rem; }
-  .hero-stats { gap: 2rem; }
+  .hero-stats { gap: 1.5rem; justify-content: center; }
   .stat-number { font-size: 1.6rem; }
 
   .page-header { padding: 6rem 0 2.5rem; margin-bottom: 2.5rem; }
@@ -800,10 +842,82 @@ img { max-width: 100%; display: block; }
   .section { padding: 2.5rem 0; }
   .hero-cta { flex-direction: column; }
   .btn { text-align: center; }
+
+  /* Game page mobile */
+  .game-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .game-stats-bar {
+    position: sticky;
+    top: 56px;
+    z-index: 50;
+    background: var(--bg);
+    padding: 0.75rem 0;
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    border-bottom: 1px solid var(--border);
+    gap: 0.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+
+  .game-stat-item {
+    min-width: 60px;
+    padding: 0.4rem 0.6rem;
+    flex-shrink: 0;
+  }
+
+  .game-stat-label {
+    font-size: 0.55rem;
+  }
+
+  .game-stat-value {
+    font-size: 1rem;
+  }
+
+  /* Snake widget on home page mobile */
+  .snake-home-grid {
+    gap: 2rem;
+  }
+
+  .snake-home-grid canvas {
+    max-width: 100%;
+    height: auto;
+  }
 }
 
 @media (max-width: 480px) {
   .hero h1 { font-size: 2rem; }
   .card, .vol-card { padding: 1.5rem; }
   .page-header h1 { font-size: 1.7rem; }
+
+  .hero-stats { gap: 1rem; }
+  .stat-number { font-size: 1.4rem; }
+  .stat-label { font-size: 0.7rem; }
+
+  .game-stat-item {
+    min-width: 55px;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .game-stat-value {
+    font-size: 0.9rem;
+  }
+
+  .btn {
+    padding: 0.7rem 1.5rem; 
+    width: 100%; 
+    border-radius: 8px; 
+    text-align: center;
+  }
+  
+  .contact-links a { 
+    width: 100%; 
+    justify-content: center; 
+  }
 }
+
