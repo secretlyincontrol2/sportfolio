@@ -16,11 +16,12 @@ export default function ProjectDetail() {
           <span
             style={{
               display: 'inline-block',
+              fontFamily: 'var(--font-mono)',
               fontSize: '0.72rem',
               fontWeight: 700,
-              letterSpacing: '1.2px',
+              letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              color: 'var(--accent)',
+              color: 'var(--gold)',
               marginBottom: '0.75rem',
             }}
           >

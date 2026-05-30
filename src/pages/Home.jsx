@@ -1,75 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ScrollReveal from '../components/ScrollReveal'
-import SnakeWidget from '../components/SnakeWidget'
 
-// ── Particle canvas background ─────────────────────────────────────────────
-function ParticleCanvas() {
-  const canvasRef = useRef(null)
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    let animId
-    let nodes = []
-    const N = 60
-    const MAX_DIST = 130
-
-    function resize() {
-      canvas.width = canvas.offsetWidth
-      canvas.height = canvas.offsetHeight
-    }
-
-    function init() {
-      resize()
-      nodes = Array.from({ length: N }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.35,
-        vy: (Math.random() - 0.5) * 0.35,
-        r: Math.random() * 1.5 + 0.5,
-      }))
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      nodes.forEach(n => {
-        n.x += n.vx; n.y += n.vy
-        if (n.x < 0 || n.x > canvas.width) n.vx *= -1
-        if (n.y < 0 || n.y > canvas.height) n.vy *= -1
-      })
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[i].x - nodes[j].x
-          const dy = nodes[i].y - nodes[j].y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < MAX_DIST) {
-            ctx.beginPath()
-            ctx.moveTo(nodes[i].x, nodes[i].y)
-            ctx.lineTo(nodes[j].x, nodes[j].y)
-            ctx.strokeStyle = `rgba(0, 229, 255, ${(1 - dist / MAX_DIST) * 0.35})`
-            ctx.lineWidth = 0.6
-            ctx.stroke()
-          }
-        }
-      }
-      nodes.forEach(n => {
-        ctx.beginPath()
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(0, 229, 255, 0.5)'
-        ctx.fill()
-      })
-      animId = requestAnimationFrame(draw)
-    }
-
-    init(); draw()
-    const ro = new ResizeObserver(() => { resize(); init() })
-    ro.observe(canvas)
-    return () => { cancelAnimationFrame(animId); ro.disconnect() }
-  }, [])
-
-  return <canvas ref={canvasRef} className="hero-canvas" />
-}
 
 // ── Typewriter ─────────────────────────────────────────────────────────────
 const ROLES = [
@@ -130,7 +62,6 @@ export default function Home() {
     <main>
       {/* ── Hero ── */}
       <section className="hero">
-        <ParticleCanvas />
         <div className="container">
           <div className="hero-layout">
             <div className="hero-content">
@@ -180,7 +111,7 @@ export default function Home() {
 
           <div className="hero-stats">
             <div className="stat-item">
-              <div className="stat-number">5</div>
+              <div className="stat-number">5+</div>
               <div className="stat-label">Projects Shipped</div>
             </div>
             <div className="stat-item">
@@ -188,82 +119,115 @@ export default function Home() {
               <div className="stat-label">Certifications</div>
             </div>
             <div className="stat-item">
-              <div className="stat-number">100+</div>
-              <div className="stat-label">Students Mentored</div>
+              <div className="stat-number">2</div>
+              <div className="stat-label">Companies</div>
             </div>
             <div className="stat-item">
-              <div className="stat-number">2026</div>
-              <div className="stat-label">B.Sc CS, Babcock University</div>
+              <div className="stat-number">100+</div>
+              <div className="stat-label">Students Mentored</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── What I Build ── */}
-      <section className="section" style={{ borderTop: '1px solid var(--border)', paddingTop: '4rem' }}>
+      <section style={{ borderTop: '1px solid var(--border-dark)' }}>
         <div className="container">
           <ScrollReveal>
-            <h2 style={{ marginBottom: '3rem', fontSize: '1.6rem', color: 'var(--accent)', fontWeight: 400, textAlign: 'center' }}>
-              What I build
-            </h2>
-          </ScrollReveal>
-          <div className="grid-3">
-            {[
-              {
-                title: 'LLM Fine-tuning',
-                body: 'PEFT / QLoRA fine-tuning of open-source models for domain-specific alignment, safety research, and downstream tasks.',
-              },
-              {
-                title: 'RAG Pipelines',
-                body: 'Hybrid retrieval systems combining vector search with graph traversal over Neo4j knowledge graphs for high-precision Q&A.',
-              },
-              {
-                title: 'Computer Vision',
-                body: 'Swin Transformer-based classification with explainability layers (Grad-CAM++) for medical imaging and beyond.',
-              },
-            ].map((item, i) => (
-              <ScrollReveal key={item.title} delay={i * 100}>
-                <div className="card">
+            <div className="feature-grid-editorial">
+              {[
+                {
+                  idx: '01',
+                  title: 'LLM Fine-tuning',
+                  body: 'PEFT / QLoRA fine-tuning of open-source models for domain-specific alignment, safety research, and downstream tasks.',
+                },
+                {
+                  idx: '02',
+                  title: 'RAG Pipelines',
+                  body: 'Hybrid retrieval systems combining vector search with graph traversal over Neo4j knowledge graphs for high-precision Q&A.',
+                },
+                {
+                  idx: '03',
+                  title: 'Computer Vision',
+                  body: 'Swin Transformer-based classification with explainability layers (Grad-CAM++) for medical imaging and beyond.',
+                },
+              ].map((item) => (
+                <div key={item.title} className="feature-item-editorial">
+                  <span className="fi-label">§ {item.idx}</span>
                   <h3>{item.title}</h3>
-                  <p style={{ marginTop: '0.5rem' }}>{item.body}</p>
+                  <p>{item.body}</p>
                 </div>
-              </ScrollReveal>
-            ))}
-          </div>
+              ))}
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
-      {/* ── Live Neural Snake AI ── */}
-      <section className="section" style={{ borderTop: '1px solid var(--border)', paddingTop: '4rem' }}>
+      {/* ── 2048 + Expectimax AI ── */}
+      <section className="section" style={{ borderTop: '1px solid var(--border-dark)', paddingTop: '4rem' }}>
         <div className="container">
-          <div className="snake-home-grid"
-          >
-            {/* Live game */}
+          <div className="snake-home-grid">
+            {/* Board preview */}
             <ScrollReveal>
-              <SnakeWidget showStats={true} />
+              <div style={{
+                width: 240, height: 240, flexShrink: 0,
+                background: 'var(--border-dark)',
+                borderRadius: 'var(--radius-sm)',
+                padding: 8,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: 6,
+              }}>
+                {[
+                  512, 256, 128, 64,
+                  32,  16,  8,   4,
+                  2,   0,   0,   0,
+                  0,   0,   0,   0,
+                ].map((v, i) => {
+                  const colors = {
+                    512: '#f1f5f9', 256: '#cbd5e1', 128: '#a1a1aa', 64: '#71717a',
+                    32: '#52525b', 16: '#3f3f46', 8: '#27272a', 4: '#18181b', 2: '#09090b',
+                  }
+                  const textColors = {
+                    512: '#09090b', 256: '#09090b', 128: '#09090b', 64: '#ffffff',
+                    32: '#ffffff', 16: '#ffffff', 8: '#ffffff', 4: '#ffffff', 2: '#ffffff',
+                  }
+                  return (
+                    <div key={i} style={{
+                      background: v ? colors[v] : 'rgba(255,255,255,0.03)',
+                      borderRadius: '4px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontFamily: 'var(--font-serif)', fontWeight: 700,
+                      fontSize: v >= 256 ? '0.75rem' : '0.9rem',
+                      color: v ? textColors[v] : 'transparent',
+                    }}>
+                      {v || ''}
+                    </div>
+                  )
+                })}
+              </div>
             </ScrollReveal>
 
             {/* Explanation */}
             <ScrollReveal delay={100}>
               <div>
-                <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '0.75rem' }}>
-                  Live Demo
-                </div>
-                <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>
-                  NEAT Snake AI
+                <span className="mono-label">Interactive Demo</span>
+                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', marginBottom: '1rem', letterSpacing: '-0.5px' }}>
+                  2048 + Expectimax AI
                 </h2>
                 <p style={{ color: 'var(--text-dim)', marginBottom: '1.5rem', lineHeight: 1.9 }}>
-                  A real neural network running live in your browser, powered by
-                  <strong style={{ color: 'var(--text)' }}> NEAT (NeuroEvolution of Augmenting Topologies)</strong>.
-                  100 AI agents play snake simultaneously. Unlike fixed networks, NEAT evolves both
-                  the <em>structure</em> and <em>weights</em>, growing new neurons over time.
+                  Play 2048 manually or hand control to an
+                  <strong style={{ color: 'var(--text)' }}> Expectimax AI</strong> that
+                  searches 4 plies deep, weighing empty cells, merge potential, monotonicity,
+                  and corner positioning to consistently reach the 2048 tile.
                 </p>
                 <p style={{ color: 'var(--text-dim)', marginBottom: '2rem', lineHeight: 1.9 }}>
-                  No backpropagation. No labelled data. Speciation protects innovation while
-                  selection pressure drives increasingly intelligent behaviour.
+                  Unlike minimax, Expectimax models tile spawns as probability-weighted
+                  chance nodes (90% for a 2, 10% for a 4) making it the correct algorithm
+                  for stochastic environments.
                 </p>
                 <Link to="/game" className="btn btn-outline" style={{ display: 'inline-block' }}>
-                  Explore NEAT
+                  Play Now
                 </Link>
               </div>
             </ScrollReveal>

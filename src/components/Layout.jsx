@@ -16,7 +16,7 @@ export default function Layout() {
       '/projects': 'Projects | Timilehin Adedayo',
       '/certifications': 'Certifications | Timilehin Adedayo',
       '/contact': 'Contact | Timilehin Adedayo',
-      '/game': 'Neural Snake AI | Timilehin Adedayo',
+      '/game': '2048 + Expectimax AI | Timilehin Adedayo',
     }
     document.title = titles[location.pathname] || 'Timilehin Adedayo'
   }, [location])
@@ -28,6 +28,7 @@ export default function Layout() {
           <div className="header-inner">
             <Link to="/" className="logo">
               T<span>IMILEHIN</span>
+              <div className="logo-sub">AI / ML Developer<br />Portfolio</div>
             </Link>
 
             <button
@@ -44,7 +45,7 @@ export default function Layout() {
               <li><NavLink to="/projects">Projects</NavLink></li>
               <li><NavLink to="/certifications">Certs</NavLink></li>
               <li><NavLink to="/contact">Contact</NavLink></li>
-              <li><NavLink to="/game">Game</NavLink></li>
+              <li><NavLink to="/game">2048</NavLink></li>
               <li>
                 <a
                   href="/cv/Timilehin Adedayo - CV.pdf"
@@ -64,7 +65,7 @@ export default function Layout() {
       <footer className="site-footer">
         <div className="container">
           <p>
-            &copy; 2026 Timilehin Adedayo &mdash;{' '}
+            &copy; 2026 Timilehin Adedayo |{' '}
             <a href="https://timilehinadedayo.dev" target="_blank" rel="noreferrer">
               timilehinadedayo.dev
             </a>

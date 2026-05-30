@@ -1,7 +1,7 @@
 import ScrollReveal from '../components/ScrollReveal'
 
 const links = [
-  { icon: '', label: 'timilehinadedayo@gmail.com', href: 'mailto:timilehinadedayo@gmail.com' },
+  { icon: '', label: 'hello@timilehinadedayo.dev', href: 'mailto:hello@timilehinadedayo.dev' },
   { icon: '', label: 'github.com/secretlyincontrol2', href: 'https://github.com/secretlyincontrol2' },
   { icon: '', label: 'LinkedIn', href: 'https://www.linkedin.com/in/timilehin-adedayo-2697a431a/' },
   { icon: '', label: 'Hugging Face', href: 'https://huggingface.co/santacl' },
@@ -57,17 +57,16 @@ export default function Contact() {
                 <div
                   style={{
                     marginTop: '2rem',
-                    padding: '1rem',
-                    background: 'var(--accent-dim)',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid rgba(0,229,255,0.15)',
+                    padding: '1.25rem',
+                    background: 'var(--gold-dim)',
+                    border: '1px solid var(--border-dark)',
                   }}
                 >
-                  <div style={{ fontSize: '0.75rem', color: 'var(--accent)', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--gold)', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
                     Status
                   </div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text)' }}>
-                    Available for opportunities
+                  <div style={{ fontSize: '0.9rem', color: 'var(--text)', fontFamily: 'var(--font-sans)' }}>
+                    Open to AI/ML roles, research collaborations & consulting
                   </div>
                 </div>
               </div>
