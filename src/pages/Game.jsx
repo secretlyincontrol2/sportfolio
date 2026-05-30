@@ -262,6 +262,7 @@ export default function Game() {
   const aiLoopRef = useRef(null)
   const stateRef = useRef(state)
   stateRef.current = state
+  const [lastDir, setLastDir] = useState(null)
 
   /* persist best score */
   useEffect(() => {
@@ -277,6 +278,8 @@ export default function Game() {
       if (prev.over || (prev.won && !prev.continued)) return prev
       const { grid: newGrid, score: gained, changed } = move(prev.grid, dir)
       if (!changed) return prev
+
+      setLastDir(dir)
 
       // Track which cells are new / merged for animation
       const spawned = addRandomTile(newGrid)
@@ -365,6 +368,7 @@ export default function Game() {
     clearTimeout(aiLoopRef.current)
     setLastAiMove(null)
     setAiThinking(false)
+    setLastDir(null)
     setState(initGame())
   }, [])
 
@@ -390,10 +394,10 @@ export default function Game() {
       <style>{`
         .g-page {
           min-height: 100vh;
-          background: var(--bg, #f2f2f2);
+          background: var(--bg);
           padding: 3rem 1rem 5rem;
           font-family: var(--font-sans, 'Inter'), sans-serif;
-          color: var(--text, #2b2b2b);
+          color: var(--text);
         }
         .g-container {
           max-width: 560px;
@@ -429,9 +433,9 @@ export default function Game() {
           margin-bottom: 1.2rem;
         }
         .g-scorecard {
-          background: var(--bg-box, #ffffff);
-          border: 1px solid var(--border-dark, #c0c0c0);
-          border-radius: 10px;
+          background: var(--bg-box);
+          border: 1px solid var(--border-dark);
+          border-radius: var(--radius-sm);
           padding: 0.55rem 1.1rem;
           text-align: center;
           min-width: 80px;
@@ -467,10 +471,10 @@ export default function Game() {
           font-size: 0.7rem;
           letter-spacing: 0.4em;
           text-transform: uppercase;
-          border: 1px solid var(--border-dark, #c0c0c0);
-          background: var(--bg-box, #ffffff);
-          color: var(--text, #2b2b2b);
-          border-radius: 8px;
+          border: 1px solid var(--border-dark);
+          background: var(--bg-box);
+          color: var(--text);
+          border-radius: var(--radius-sm);
           padding: 0.55rem 1.25rem;
           cursor: pointer;
           transition: all 0.18s ease;
@@ -487,9 +491,9 @@ export default function Game() {
           color: var(--text-dim, #5a5a5a);
         }
         .g-btn-ai.active {
-          background: var(--text, #2b2b2b);
-          color: #ffffff;
-          border-color: var(--text, #2b2b2b);
+          background: var(--text);
+          color: var(--bg);
+          border-color: var(--text);
         }
         .g-ai-status {
           font-family: var(--font-mono, 'Fira Code'), monospace;
@@ -525,8 +529,8 @@ export default function Game() {
 
         /* Game board */
         .g-board {
-          background: #c0c0c0;
-          border-radius: 0;
+          background: var(--border-dark);
+          border-radius: var(--radius);
           padding: 8px;
           display: grid;
           grid-template-columns: repeat(4, 1fr);
@@ -541,8 +545,8 @@ export default function Game() {
 
         /* Empty cells */
         .g-cell-bg {
-          background: rgba(255,255,255,0.35);
-          border-radius: 0;
+          background: rgba(255,255,255,0.03);
+          border-radius: var(--radius-sm);
         }
 
         /* Tiles overlay */
@@ -556,16 +560,16 @@ export default function Game() {
         }
         .g-tile {
           position: absolute;
-          border-radius: 0;
+          border-radius: var(--radius-sm);
           display: flex;
           align-items: center;
           justify-content: center;
           font-family: var(--font-serif, 'Playfair Display'), serif;
           font-weight: 700;
           transition:
-            top 0.12s ease,
-            left 0.12s ease,
-            transform 0.1s ease;
+            top 0.12s cubic-bezier(0.25, 1, 0.5, 1),
+            left 0.12s cubic-bezier(0.25, 1, 0.5, 1),
+            transform 0.12s cubic-bezier(0.25, 1, 0.5, 1);
           will-change: transform, top, left;
         }
         .g-tile.new-tile {
@@ -603,8 +607,8 @@ export default function Game() {
           to   { opacity: 1; }
         }
         .g-overlay-over {
-          background: rgba(242,242,242,0.93);
-          backdrop-filter: blur(2px);
+          background: rgba(9, 9, 11, 0.94);
+          backdrop-filter: blur(4px);
         }
         .g-overlay-won {
           background: rgba(43,43,43,0.90);
@@ -803,7 +807,7 @@ export default function Game() {
               ))}
 
               {/* Tiles overlay */}
-              <TileGrid grid={state.grid} getTileStyle={getTileStyle} fontSize={fontSize} />
+              <TileGrid grid={state.grid} getTileStyle={getTileStyle} fontSize={fontSize} lastDir={lastDir} />
 
               {/* Game Over overlay */}
               {state.over && (
@@ -882,51 +886,141 @@ export default function Game() {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   TILE GRID - positioned overlay for smooth CSS transitions
-───────────────────────────────────────────────────────────────*/
-function TileGrid({ grid, getTileStyle, fontSize }) {
-  const [tiles, setTiles] = useState([])
-  const prevGridRef = useRef(null)
-  const idCounterRef = useRef(0)
+   TILE GRID - reconciled overlay for smooth CSS transitions
+ ───────────────────────────────────────────────────────────────*/
+let idCounter = 1;
+function nextId() { return idCounter++; }
 
-  useEffect(() => {
-    const prev = prevGridRef.current
+function reconcileGrid(prevTiles, newGrid, dir) {
+  const activePrev = prevTiles.filter(t => !t.mergedInto);
+  const nextTiles = [];
+  const matchedPositions = new Set();
+  const posKey = (r, c) => `${r},${c}`;
 
-    if (!prev) {
-      // Initial render: create all tiles with IDs
-      const initial = []
-      for (let r = 0; r < SIZE; r++)
-        for (let c = 0; c < SIZE; c++)
-          if (grid[r][c] !== 0)
-            initial.push({ id: idCounterRef.current++, r, c, val: grid[r][c], isNew: true, isMerged: false })
-      setTiles(initial)
-      prevGridRef.current = grid
-      return
-    }
-
-    // Compute new tile set
-    const newTiles = []
-    for (let r = 0; r < SIZE; r++)
+  if (dir === null || dir === undefined) {
+    for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
-        const val = grid[r][c]
+        const val = newGrid[r][c];
         if (val !== 0) {
-          const wasHere = prev[r][c] === val
-          const appeared = prev[r][c] !== val
-          newTiles.push({
-            id: idCounterRef.current++,
-            r, c, val,
-            isNew: appeared && prev[r][c] === 0,
-            isMerged: appeared && prev[r][c] !== 0 && prev[r][c] !== val,
-          })
+          nextTiles.push({ id: nextId(), val, r, c, isNew: true });
         }
       }
-    setTiles(newTiles)
-    prevGridRef.current = grid
-  }, [grid])
+    }
+    return nextTiles;
+  }
 
-  // Cell size calculation - based on board width
-  // Board padding: 10px each side, gap: 10px, 4 cols
-  // We use CSS calc inside the style directly
+  if (dir === 0 || dir === 1) {
+    for (let r = 0; r < SIZE; r++) {
+      const rowTiles = activePrev.filter(t => t.r === r);
+      if (dir === 0) rowTiles.sort((a, b) => a.c - b.c);
+      else rowTiles.sort((a, b) => b.c - a.c);
+
+      let nextIdx = (dir === 0) ? 0 : SIZE - 1;
+      const step = (dir === 0) ? 1 : -1;
+
+      let i = 0;
+      while (i < rowTiles.length) {
+        const t1 = rowTiles[i];
+        const t2 = rowTiles[i + 1];
+
+        if (t2 && t1.val === t2.val) {
+          const mergedVal = t1.val * 2;
+          const targetC = nextIdx;
+          nextIdx += step;
+
+          const newTileId = nextId();
+          nextTiles.push({
+            id: newTileId,
+            val: mergedVal,
+            r,
+            c: targetC,
+            isMerged: true
+          });
+          matchedPositions.add(posKey(r, targetC));
+
+          nextTiles.push({ ...t1, c: targetC, mergedInto: newTileId });
+          nextTiles.push({ ...t2, c: targetC, mergedInto: newTileId });
+          i += 2;
+        } else {
+          const targetC = nextIdx;
+          nextIdx += step;
+
+          nextTiles.push({ ...t1, c: targetC });
+          matchedPositions.add(posKey(r, targetC));
+          i += 1;
+        }
+      }
+    }
+  } else {
+    for (let c = 0; c < SIZE; c++) {
+      const colTiles = activePrev.filter(t => t.c === c);
+      if (dir === 2) colTiles.sort((a, b) => a.r - b.r);
+      else colTiles.sort((a, b) => b.r - a.r);
+
+      let nextIdx = (dir === 2) ? 0 : SIZE - 1;
+      const step = (dir === 2) ? 1 : -1;
+
+      let i = 0;
+      while (i < colTiles.length) {
+        const t1 = colTiles[i];
+        const t2 = colTiles[i + 1];
+
+        if (t2 && t1.val === t2.val) {
+          const mergedVal = t1.val * 2;
+          const targetR = nextIdx;
+          nextIdx += step;
+
+          const newTileId = nextId();
+          nextTiles.push({
+            id: newTileId,
+            val: mergedVal,
+            r: targetR,
+            c,
+            isMerged: true
+          });
+          matchedPositions.add(posKey(targetR, c));
+
+          nextTiles.push({ ...t1, r: targetR, mergedInto: newTileId });
+          nextTiles.push({ ...t2, r: targetR, mergedInto: newTileId });
+          i += 2;
+        } else {
+          const targetR = nextIdx;
+          nextIdx += step;
+
+          nextTiles.push({ ...t1, r: targetR });
+          matchedPositions.add(posKey(targetR, c));
+          i += 1;
+        }
+      }
+    }
+  }
+
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      const val = newGrid[r][c];
+      if (val !== 0 && !matchedPositions.has(posKey(r, c))) {
+        nextTiles.push({ id: nextId(), val, r, c, isNew: true });
+      }
+    }
+  }
+
+  return nextTiles;
+}
+
+function TileGrid({ grid, getTileStyle, fontSize, lastDir }) {
+  const [tiles, setTiles] = useState([])
+
+  useEffect(() => {
+    const next = reconcileGrid(tiles, grid, lastDir)
+    setTiles(next)
+
+    const timer = setTimeout(() => {
+      setTiles(prev => prev.filter(t => !t.mergedInto))
+    }, 120)
+
+    return () => clearTimeout(timer)
+  }, [grid, lastDir])
+
   return (
     <div className="g-tiles-overlay">
       {tiles.map(tile => {
