@@ -126,68 +126,90 @@ function countEmpty(grid) {
   return getEmptyCells(grid).length
 }
 
-function monotonicity(grid) {
-  let score = 0
-  // Rows: prefer increasing or decreasing
+const SNAKE_WEIGHTS = [
+  [65536, 32768, 16384, 8192],
+  [512,   1024,  2048,  4096],
+  [256,   128,   64,    32],
+  [2,     4,     8,     16]
+];
+
+function getSmoothness(grid) {
+  let smoothness = 0;
   for (let r = 0; r < SIZE; r++) {
-    let incr = 0, decr = 0
+    for (let c = 0; c < SIZE; c++) {
+      if (grid[r][c] !== 0) {
+        const val = Math.log2(grid[r][c]);
+        if (c < SIZE - 1 && grid[r][c + 1] !== 0) {
+          smoothness -= Math.abs(val - Math.log2(grid[r][c + 1]));
+        }
+        if (r < SIZE - 1 && grid[r + 1][c] !== 0) {
+          smoothness -= Math.abs(val - Math.log2(grid[r + 1][c]));
+        }
+      }
+    }
+  }
+  return smoothness;
+}
+
+function monotonicity(grid) {
+  let score = 0;
+  for (let r = 0; r < SIZE; r++) {
+    let incr = 0, decr = 0;
     for (let c = 0; c < SIZE - 1; c++) {
-      const a = grid[r][c], b = grid[r][c + 1]
-      if (a > b) incr += a - b
-      if (a < b) decr += b - a
+      const a = grid[r][c], b = grid[r][c + 1];
+      if (a > b) incr += a - b;
+      if (a < b) decr += b - a;
     }
-    score -= Math.min(incr, decr)
+    score -= Math.min(incr, decr);
   }
-  // Cols
   for (let c = 0; c < SIZE; c++) {
-    let incr = 0, decr = 0
+    let incr = 0, decr = 0;
     for (let r = 0; r < SIZE - 1; r++) {
-      const a = grid[r][c], b = grid[r + 1][c]
-      if (a > b) incr += a - b
-      if (a < b) decr += b - a
+      const a = grid[r][c], b = grid[r + 1][c];
+      if (a > b) incr += a - b;
+      if (a < b) decr += b - a;
     }
-    score -= Math.min(incr, decr)
+    score -= Math.min(incr, decr);
   }
-  return score
+  return score;
 }
 
 function mergePotential(grid) {
-  let count = 0
+  let count = 0;
   for (let r = 0; r < SIZE; r++)
     for (let c = 0; c < SIZE; c++) {
-      if (c < SIZE - 1 && grid[r][c] !== 0 && grid[r][c] === grid[r][c + 1]) count++
-      if (r < SIZE - 1 && grid[r][c] !== 0 && grid[r][c] === grid[r + 1][c]) count++
+      if (c < SIZE - 1 && grid[r][c] !== 0 && grid[r][c] === grid[r][c + 1]) count++;
+      if (r < SIZE - 1 && grid[r][c] !== 0 && grid[r][c] === grid[r + 1][c]) count++;
     }
-  return count
-}
-
-function maxTile(grid) {
-  let max = 0
-  for (let r = 0; r < SIZE; r++)
-    for (let c = 0; c < SIZE; c++)
-      if (grid[r][c] > max) max = grid[r][c]
-  return max
-}
-
-function cornerBonus(grid) {
-  const max = maxTile(grid)
-  // Reward if max tile is in a corner
-  const corners = [
-    grid[0][0], grid[0][SIZE-1],
-    grid[SIZE-1][0], grid[SIZE-1][SIZE-1]
-  ]
-  return corners.includes(max) ? max * 2 : 0
+  return count;
 }
 
 function heuristic(grid) {
-  const empty = countEmpty(grid)
-  return (
-    empty * 270 +
-    monotonicity(grid) * 1.0 +
-    mergePotential(grid) * 700 +
-    cornerBonus(grid) * 1.8 +
-    Math.log2(Math.max(maxTile(grid), 1)) * 10
-  )
+  let score = 0;
+  const empty = countEmpty(grid);
+
+  // 1. Weight matrix evaluation (snake path to top-left)
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      if (grid[r][c] !== 0) {
+        score += grid[r][c] * SNAKE_WEIGHTS[r][c];
+      }
+    }
+  }
+
+  // 2. Smoothness (adjacent values penalty)
+  score += getSmoothness(grid) * 240;
+
+  // 3. Monotonicity
+  score += monotonicity(grid) * 100;
+
+  // 4. Empty cell bonus
+  score += empty * 2000;
+
+  // 5. Merge potential
+  score += mergePotential(grid) * 1000;
+
+  return score;
 }
 
 function expectimax(grid, depth, isMaxNode) {
@@ -350,18 +372,31 @@ export default function Game() {
       setAiThinking(true)
       // Yield to browser then compute
       aiLoopRef.current = setTimeout(() => {
-        const { dir, name } = bestMove(stateRef.current.grid, 4)
+        const grid = stateRef.current.grid
+        const emptyCount = countEmpty(grid)
+        const depth = emptyCount <= 4 ? 5 : 3
+        const { dir, name } = bestMove(grid, depth)
         setLastAiMove(name)
         if (dir !== -1) applyMove(dir)
         setAiThinking(false)
         // Schedule next tick
-        aiLoopRef.current = setTimeout(tick, 120)
+        aiLoopRef.current = setTimeout(tick, 150)
       }, 30)
     }
 
     aiLoopRef.current = setTimeout(tick, 200)
     return () => clearTimeout(aiLoopRef.current)
   }, [aiMode, applyMove])
+
+  /* ── Auto-restart AI when game over ── */
+  useEffect(() => {
+    if (state.over && aiMode) {
+      const timer = setTimeout(() => {
+        newGame()
+      }, 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [state.over, aiMode, newGame])
 
   /* ── New game ── */
   const newGame = useCallback(() => {
@@ -503,6 +538,8 @@ export default function Game() {
           display: flex;
           align-items: center;
           gap: 0.4rem;
+          min-width: 140px;
+          justify-content: flex-start;
         }
         .g-ai-status.thinking {
           color: var(--gold, #d4a35b);
@@ -842,41 +879,31 @@ export default function Game() {
 
           {/* ── Explainer ── */}
           <div className="g-explainer">
-            <h2 className="g-explainer-title">How Expectimax Works</h2>
+            <h2 className="g-explainer-title">My Expectimax Implementation</h2>
             <p>
-              Unlike minimax, Expectimax doesn't assume an adversarial opponent. In 2048, the
-              random tile placement is <em>stochastic</em>, so the algorithm models it as a{' '}
-              <span className="g-mono">chance node</span> that computes a probability-weighted
-              average over all possible tile spawns (90% for 2, 10% for 4).
+              Since 2048 is stochastic, standard minimax is mathematically incorrect. I modeled the board spawns as chance nodes that evaluate probability-weighted outcomes (90% for 2, 10% for 4), alternating with maximisation layers for my optimal moves.
             </p>
             <p>
-              The AI searches <span className="g-mono">4 plies</span> deep, alternating between
-              player moves (maximising nodes) and tile spawns (chance nodes), evaluating each
-              leaf state with a composite heuristic:
+              To achieve high scores, my algorithm runs a dynamic-depth search up to 5 plies, scoring board configurations using a multi-factored heuristic weight space:
             </p>
             <div className="g-heuristic-grid">
               <div className="g-heuristic-item">
                 <div className="g-heuristic-dot" />
-                <span><strong>Empty cells</strong> (weight ×270)</span>
+                <span><strong>Corner Gradient</strong> — strict snake path weight matrix favoring the top-left</span>
               </div>
               <div className="g-heuristic-item">
                 <div className="g-heuristic-dot" />
-                <span><strong>Merge potential</strong> (×700)</span>
+                <span><strong>Smoothness</strong> — log-difference penalty between adjacent cells</span>
               </div>
               <div className="g-heuristic-item">
                 <div className="g-heuristic-dot" />
-                <span><strong>Monotonicity</strong> - tiles ordered along rows/cols</span>
+                <span><strong>Monotonicity</strong> — strictly sorted rows and columns</span>
               </div>
               <div className="g-heuristic-item">
                 <div className="g-heuristic-dot" />
-                <span><strong>Corner bonus</strong> - max tile stays in a corner</span>
+                <span><strong>Empty cells</strong> — heavy exponential bonus for open tiles</span>
               </div>
             </div>
-            <p>
-              Each AI tick runs inside a <span className="g-mono">setTimeout</span> to yield
-              control back to the browser between moves, keeping the UI smooth and the{' '}
-              <span className="g-mono">THINKING...</span> indicator responsive.
-            </p>
           </div>
 
         </div>
