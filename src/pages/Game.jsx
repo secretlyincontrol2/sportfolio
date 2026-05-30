@@ -388,16 +388,6 @@ export default function Game() {
     return () => clearTimeout(aiLoopRef.current)
   }, [aiMode, applyMove])
 
-  /* ── Auto-restart AI when game over ── */
-  useEffect(() => {
-    if (state.over && aiMode) {
-      const timer = setTimeout(() => {
-        newGame()
-      }, 1500)
-      return () => clearTimeout(timer)
-    }
-  }, [state.over, aiMode, newGame])
-
   /* ── New game ── */
   const newGame = useCallback(() => {
     clearTimeout(aiLoopRef.current)
@@ -410,6 +400,16 @@ export default function Game() {
   const continueGame = () => setState(p => ({ ...p, won: false, continued: true }))
 
   const toggleAI = () => setAiMode(m => !m)
+
+  /* ── Auto-restart AI when game over ── */
+  useEffect(() => {
+    if (state.over && aiMode) {
+      const timer = setTimeout(() => {
+        newGame()
+      }, 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [state.over, aiMode, newGame])
 
   /* ── Tile display value ── */
   const getTileStyle = (val) => {
