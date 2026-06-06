@@ -25,7 +25,7 @@ const skills = [
 const experience = [
   {
     company: 'Acturian',
-    role: 'AI Developer',
+    role: 'Co-Founder & CTO',
     period: 'Feb 2026 - Present',
     type: 'Full-time',
     bullets: [
@@ -37,16 +37,77 @@ const experience = [
     ],
   },
   {
-    company: 'Prism',
+    company: 'Cortex AI',
     role: 'Founder & AI Lead',
-    period: 'Sep 2025 - Present',
-    type: 'Startup',
+    period: 'Sep 2025 - Jan 2026',
+    type: 'Contract',
     bullets: [
-      'Founded an AI healthcare startup building intelligent clinical decision support tools for resource-constrained settings across sub-Saharan Africa',
       'Designed and shipped a diagnostic inference engine combining computer vision (Swin Transformer) with a RAG-grounded knowledge base of clinical guidelines',
-      'Led product architecture from ideation to MVP, coordinating a cross-functional team of engineers, clinicians, and UX researchers',
-      'Developed a lightweight model quantization pipeline enabling deployment on low-bandwidth, low-compute edge devices in clinic settings',
-      'Established data governance protocols ensuring HIPAA-aligned anonymisation and consent management for all patient data',
+      'Built the end-to-end ML pipeline from data ingestion to model serving, supporting real-time inference at scale',
+      'Developed a lightweight model quantization pipeline enabling deployment on low-bandwidth, low-compute edge devices',
+      'Implemented data governance protocols ensuring HIPAA-aligned anonymisation and consent management for all patient data',
+      'Coordinated a cross-functional team of engineers, clinicians, and UX researchers to ship the product on schedule',
+    ],
+  },
+  {
+    company: 'IITA (International Institute of Tropical Agriculture)',
+    role: 'Software Developer Intern',
+    period: 'Jan 2025 - Jun 2025',
+    type: 'Internship',
+    bullets: [
+      'Built convolutional neural networks for early detection of cassava mosaic disease and brown streak virus from field imagery, achieving 94% validation accuracy',
+      'Developed automated crop yield estimation pipelines using satellite imagery and Random Forest regressors across multi-season datasets',
+      'Integrated drone-captured multispectral data into a soil health classification model to guide precision fertiliser application',
+      'Created a Flask-based internal dashboard for researchers to upload leaf samples and receive real-time disease predictions',
+      'Collaborated with agronomists to curate and label a 12,000-image dataset of pest-affected maize crops for downstream model training',
+    ],
+  },
+  {
+    company: 'Synthea Labs',
+    role: 'Machine Learning Intern',
+    period: 'Sep 2024 - Dec 2024',
+    type: 'Internship',
+    bullets: [
+      'Trained and evaluated generative adversarial networks for synthetic tabular data augmentation, reducing class imbalance in fraud detection datasets by 3x',
+      'Built an automated feature selection pipeline using mutual information and SHAP values, cutting model training time by 40%',
+      'Deployed inference endpoints on AWS Lambda behind API Gateway, handling 2,000+ daily prediction requests',
+      'Wrote comprehensive model cards and experiment reports documenting hyperparameter sweeps across 50+ configurations',
+    ],
+  },
+  {
+    company: 'Meridian Analytics',
+    role: 'ML Engineering Intern',
+    period: 'May 2024 - Aug 2024',
+    type: 'Internship',
+    bullets: [
+      'Developed time-series forecasting models (LSTM, Prophet) for energy consumption prediction across commercial building portfolios',
+      'Designed a real-time anomaly detection system using Isolation Forest and autoencoders, flagging equipment failures 6 hours ahead of traditional thresholds',
+      'Optimised ETL pipelines ingesting 500GB+ of sensor telemetry data into a feature store built on DuckDB and Parquet',
+      'Presented weekly model performance reviews to the engineering leadership team, translating metrics into actionable product insights',
+    ],
+  },
+  {
+    company: 'Kova Research',
+    role: 'NLP Research Intern',
+    period: 'Jan 2024 - Apr 2024',
+    type: 'Internship',
+    bullets: [
+      'Fine-tuned multilingual BERT models for low-resource African language sentiment analysis, achieving state-of-the-art F1 scores on Yoruba and Igbo benchmarks',
+      'Built a named entity recognition pipeline for legal document processing, extracting structured data from 10,000+ unstructured contracts',
+      'Implemented a retrieval-augmented generation prototype using FAISS and GPT-3.5 for internal knowledge base Q&A',
+      'Authored a technical report on cross-lingual transfer learning strategies, contributing to the team\'s publication pipeline',
+    ],
+  },
+  {
+    company: 'DeepFrame Systems',
+    role: 'Computer Vision Intern',
+    period: 'Jul 2023 - Dec 2023',
+    type: 'Internship',
+    bullets: [
+      'Trained YOLOv8 object detection models for real-time PPE compliance monitoring on construction sites, reaching 91% mAP',
+      'Built a video analytics pipeline processing 30fps RTSP streams with OpenCV, performing frame sampling, tracking, and alert dispatch',
+      'Developed a Grad-CAM++ visualisation tool for model interpretability, enabling safety officers to audit detection decisions',
+      'Reduced model inference latency by 35% through TensorRT optimisation and INT8 quantisation on NVIDIA Jetson edge devices',
     ],
   },
 ]
@@ -94,7 +155,7 @@ export default function About() {
         <div className="page-header">
           <h1>About <span>Me</span></h1>
           <p>
-            AI/ML Developer and founder building production-grade machine learning systems,
+            AI/ML Developer and co-founder building production-grade machine learning systems,
             from clinical decision support to insurance scoring engines.
           </p>
         </div>
@@ -105,7 +166,7 @@ export default function About() {
             <span className="mono-label">§ 01 - Experience</span>
             <h2 style={{ marginBottom: '0.5rem' }}>Work Experience</h2>
             <p className="section-desc">
-              Professional roles spanning enterprise AI engineering and healthtech entrepreneurship.
+              Professional roles spanning enterprise AI, applied ML research, and domain-specific engineering.
             </p>
           </ScrollReveal>
 
@@ -253,6 +314,21 @@ export default function About() {
                 </p>
               </div>
             </ScrollReveal>
+
+            <ScrollReveal delay={200}>
+              <div className="vol-card">
+                <div className="role-header">
+                  <h3>Babcock Tech Hub</h3>
+                  <span className="role-tag">AI Technical Mentor</span>
+                </div>
+                <p>
+                  Served as the primary AI technical mentor, guiding students through
+                  hands-on machine learning projects covering computer vision, NLP, and
+                  model deployment. Conducted weekly office hours and code reviews for
+                  mentees building their first end-to-end ML pipelines.
+                </p>
+              </div>
+            </ScrollReveal>
           </div>
         </section>
 
@@ -264,10 +340,23 @@ export default function About() {
           </ScrollReveal>
 
           <ScrollReveal delay={100}>
-            <div className="vol-card">
-              <div className="role-header">
+            <div className="vol-card" style={{ position: 'relative' }}>
+              <div style={{
+                position: 'absolute', top: 0, left: 0,
+                fontFamily: 'var(--font-mono)', fontSize: '0.6rem',
+                fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+                color: 'var(--gold)', background: 'var(--bg-box)',
+                border: '1px solid var(--border-dark)',
+                padding: '0.2rem 0.6rem',
+                transform: 'translate(-1px, -1px)',
+              }}>
+                Degree
+              </div>
+              <div className="role-header" style={{ marginTop: '1rem' }}>
                 <div>
-                  <h3>Babcock University</h3>
+                  <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', letterSpacing: '-0.5px' }}>
+                    Babcock University
+                  </h3>
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '0.2rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                     B.Sc. Computer Science
                   </div>
