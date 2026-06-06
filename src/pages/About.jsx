@@ -39,8 +39,8 @@ const experience = [
   {
     company: 'Cortex AI',
     role: 'Founder & AI Lead',
-    period: 'Sep 2025 - Jan 2026',
-    type: 'Contract',
+    period: 'Sep 2025 - Present',
+    type: 'Full-time',
     bullets: [
       'Designed and shipped a diagnostic inference engine combining computer vision (Swin Transformer) with a RAG-grounded knowledge base of clinical guidelines',
       'Built the end-to-end ML pipeline from data ingestion to model serving, supporting real-time inference at scale',
