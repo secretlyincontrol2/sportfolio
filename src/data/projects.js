@@ -29,15 +29,15 @@ export const projects = [
     tagClass: 'project-thumb-cv',
     icon: '',
     title: 'BRAIN',
-    short: 'Explainable AI for cancer diagnosis using Swin Transformer and RAG-based verification, achieving 100% accuracy on test sets.',
+    short: 'Explainable AI for cancer diagnosis using Swin Transformer and RAG-based verification, achieving 98.99% accuracy on test sets.',
     subtitle: 'Breast Retrieval-Augmented Intelligence Network: Explainable AI for breast cancer diagnosis.',
     links: [
       { label: 'Case Study', href: null, internal: true },
       { label: 'Hugging Face', href: 'https://huggingface.co/santacl/brain/tree/main', external: true },
     ],
-    overview: `BRAIN (Breast Retrieval-Augmented Intelligence Network) is an explainable AI system for breast cancer diagnosis that combines a Swin Transformer vision model with a RAG-based verification pipeline. The dual-head architecture separates classification from explanation, achieving 100% accuracy and AUC-ROC of 1.0 on the test set while providing interpretable Grad-CAM++ heatmaps.`,
+    overview: `BRAIN (Breast Retrieval-Augmented Intelligence Network) is an explainable AI system for breast cancer diagnosis that combines a Swin Transformer vision model with a RAG-based verification pipeline. The dual-head architecture separates classification from explanation, achieving 98.99% accuracy and AUC-ROC of 1.0 on the test set while providing interpretable Grad-CAM++ heatmaps.`,
     highlights: [
-      '100% classification accuracy and AUC-ROC of 1.0 on held-out test set',
+      '98.99% classification accuracy and AUC-ROC of 1.0 on held-out test set',
       'Dual-Head Loss separating classification from explanation',
       'Grad-CAM++ visualization for clinical interpretability',
       'RAG pipeline cross-referencing predictions against medical literature',
