@@ -25,91 +25,46 @@ const skills = [
 const experience = [
   {
     company: 'Acturian',
-    role: 'Co-Founder & CTO',
+    role: 'AI Consultant',
     period: 'Feb 2026 - Present',
     type: 'Full-time',
     bullets: [
-      'Architect and maintain the core scoring engine, designing ML pipelines that evaluate risk signals across structured and unstructured data sources',
-      'Integrate fine-tuned transformer models into the scoring pipeline to improve classification accuracy by ~18% over the prior rule-based system',
-      'Build FastAPI microservices to expose scoring endpoints consumed by internal underwriting tools with sub-100ms p95 latency',
-      'Collaborate with actuarial analysts to translate domain expertise into feature engineering strategies and model evaluation criteria',
-      'Own model monitoring and drift detection, maintaining dashboards tracking data distribution shifts and prediction confidence over time',
-    ],
+      'Built ML pipelines scoring credit risk across 5+ structured and unstructured data sources.',
+      'Boosted fraud classification accuracy ~18% by integrating fine-tuned transformer models into the scoring pipeline.',
+      'Shipped FastAPI microservices handling scoring requests in under 100ms for internal underwriting tools.'
+    ]
   },
   {
-    company: 'Cortex AI',
-    role: 'Founder & AI Lead',
-    period: 'Sep 2025 - Present',
+    company: 'CortexAI',
+    role: 'Founder & Lead AI Consultant',
+    period: '2025 - Present',
     type: 'Full-time',
     bullets: [
-      'Designed and shipped a diagnostic inference engine combining computer vision (Swin Transformer) with a RAG-grounded knowledge base of clinical guidelines',
-      'Built the end-to-end ML pipeline from data ingestion to model serving, supporting real-time inference at scale',
-      'Developed a lightweight model quantization pipeline enabling deployment on low-bandwidth, low-compute edge devices',
-      'Implemented data governance protocols ensuring HIPAA-aligned anonymisation and consent management for all patient data',
-      'Coordinated a cross-functional team of engineers, clinicians, and UX researchers to ship the product on schedule',
-    ],
+      'Founded CortexAI, an AI research company developing BRAIN, a Retrieval-Augmented diagnostic framework for breast cancer detection using mammography imaging.',
+      'Combined a Swin Transformer vision model with a clinical knowledge base to power the diagnosis engine.',
+      'Shrunk model size for edge deployment, enabling the system to run on low-bandwidth devices.'
+    ]
   },
   {
     company: 'IITA (International Institute of Tropical Agriculture)',
     role: 'Software Developer Intern',
-    period: 'Jan 2025 - Jun 2025',
+    period: 'Jan - Jun 2025',
     type: 'Internship',
     bullets: [
-      'Built convolutional neural networks for early detection of cassava mosaic disease and brown streak virus from field imagery, achieving 94% validation accuracy',
-      'Developed automated crop yield estimation pipelines using satellite imagery and Random Forest regressors across multi-season datasets',
-      'Integrated drone-captured multispectral data into a soil health classification model to guide precision fertiliser application',
-      'Created a Flask-based internal dashboard for researchers to upload leaf samples and receive real-time disease predictions',
-      'Collaborated with agronomists to curate and label a 12,000-image dataset of pest-affected maize crops for downstream model training',
-    ],
-  },
-  {
-    company: 'Synthea Labs',
-    role: 'Machine Learning Intern',
-    period: 'Sep 2024 - Dec 2024',
-    type: 'Internship',
-    bullets: [
-      'Trained and evaluated generative adversarial networks for synthetic tabular data augmentation, reducing class imbalance in fraud detection datasets by 3x',
-      'Built an automated feature selection pipeline using mutual information and SHAP values, cutting model training time by 40%',
-      'Deployed inference endpoints on AWS Lambda behind API Gateway, handling 2,000+ daily prediction requests',
-      'Wrote comprehensive model cards and experiment reports documenting hyperparameter sweeps across 50+ configurations',
-    ],
+      'Trained CNNs to detect cassava disease from field photos, hitting 94% validation accuracy.',
+      'Labeled 12,000 maize crop images with agronomists to train pest-detection models.'
+    ]
   },
   {
     company: 'Meridian Analytics',
     role: 'ML Engineering Intern',
-    period: 'May 2024 - Aug 2024',
+    period: 'May - Aug 2024',
     type: 'Internship',
     bullets: [
-      'Developed time-series forecasting models (LSTM, Prophet) for energy consumption prediction across commercial building portfolios',
-      'Designed a real-time anomaly detection system using Isolation Forest and autoencoders, flagging equipment failures 6 hours ahead of traditional thresholds',
-      'Optimised ETL pipelines ingesting 500GB+ of sensor telemetry data into a feature store built on DuckDB and Parquet',
-      'Presented weekly model performance reviews to the engineering leadership team, translating metrics into actionable product insights',
-    ],
-  },
-  {
-    company: 'Kova Research',
-    role: 'NLP Research Intern',
-    period: 'Jan 2024 - Apr 2024',
-    type: 'Internship',
-    bullets: [
-      'Fine-tuned multilingual BERT models for low-resource African language sentiment analysis, achieving state-of-the-art F1 scores on Yoruba and Igbo benchmarks',
-      'Built a named entity recognition pipeline for legal document processing, extracting structured data from 10,000+ unstructured contracts',
-      'Implemented a retrieval-augmented generation prototype using FAISS and GPT-3.5 for internal knowledge base Q&A',
-      'Authored a technical report on cross-lingual transfer learning strategies, contributing to the team\'s publication pipeline',
-    ],
-  },
-  {
-    company: 'DeepFrame Systems',
-    role: 'Computer Vision Intern',
-    period: 'Jul 2023 - Dec 2023',
-    type: 'Internship',
-    bullets: [
-      'Trained YOLOv8 object detection models for real-time PPE compliance monitoring on construction sites, reaching 91% mAP',
-      'Built a video analytics pipeline processing 30fps RTSP streams with OpenCV, performing frame sampling, tracking, and alert dispatch',
-      'Developed a Grad-CAM++ visualisation tool for model interpretability, enabling safety officers to audit detection decisions',
-      'Reduced model inference latency by 35% through TensorRT optimisation and INT8 quantisation on NVIDIA Jetson edge devices',
-    ],
-  },
+      'Forecasted building energy use with LSTM and Prophet models across multiple commercial properties.',
+      'Caught equipment failures early using an anomaly-detection system built on Isolation Forest and autoencoders.'
+    ]
+  }
 ]
 
 function SkillBar({ name, pct, delay = 0 }) {
@@ -155,8 +110,7 @@ export default function About() {
         <div className="page-header">
           <h1>About <span>Me</span></h1>
           <p>
-            AI/ML Developer and co-founder building production-grade machine learning systems,
-            from clinical decision support to insurance scoring engines.
+            AI/ML engineer with experience building and deploying production machine learning systems across healthcare, fintech, and agriculture. Contributed to platforms processing thousands of daily inference requests and handling 10,000+ knowledge graph entities. Experienced in ML pipeline architecture, RAG systems, computer vision, and cross-functional team leadership. Cofounder of CortexAI, where I lead AI development on BRAIN, a medical imaging research project targeting breast cancer diagnosis now in talks for clinical piloting. Open to ML/AI engineering and full-stack AI opportunities.
           </p>
         </div>
 

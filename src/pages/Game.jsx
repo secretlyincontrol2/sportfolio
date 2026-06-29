@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 /* ─────────────────────────────────────────────────────────────
    CONSTANTS & HELPERS
 ───────────────────────────────────────────────────────────────*/
-const SIZE = 4
+const SIZE = 8
 
 const TILE_COLORS = {
   2:    { bg: '#18181b', text: '#f4f4f5', shadow: 'rgba(0,0,0,0.2)' },
@@ -17,6 +17,11 @@ const TILE_COLORS = {
   512:  { bg: '#f1f5f9', text: '#09090b', shadow: 'rgba(0,0,0,0.45)' },
   1024: { bg: '#f8fafc', text: '#09090b', shadow: 'rgba(0,0,0,0.5)' },
   2048: { bg: '#ffffff', text: '#09090b', shadow: 'rgba(255,255,255,0.2)' },
+  4096: { bg: '#f2ca50', text: '#09090b', shadow: 'rgba(242,202,80,0.4)' },
+  8192: { bg: '#f59e0b', text: '#09090b', shadow: 'rgba(245,158,11,0.4)' },
+  16384: { bg: '#ef4444', text: '#ffffff', shadow: 'rgba(239,68,68,0.4)' },
+  32768: { bg: '#a855f7', text: '#ffffff', shadow: 'rgba(168,85,247,0.4)' },
+  65536: { bg: '#3b82f6', text: '#ffffff', shadow: 'rgba(59,130,246,0.4)' },
 }
 
 function emptyGrid() {
@@ -127,10 +132,14 @@ function countEmpty(grid) {
 }
 
 const SNAKE_WEIGHTS = [
-  [65536, 32768, 16384, 8192],
-  [512,   1024,  2048,  4096],
-  [256,   128,   64,    32],
-  [2,     4,     8,     16]
+  [2097152, 1048576, 524288, 262144, 131072, 65536, 32768, 16384],
+  [512,     1024,   2048,   4096,   8192,   16384, 32768, 65536],
+  [256,     128,    64,     32,     16,     8,     4,     2    ],
+  [2,       4,      8,      16,     32,     64,    128,   256  ],
+  [256,     128,    64,     32,     16,     8,     4,     2    ],
+  [2,       4,      8,      16,     32,     64,    128,   256  ],
+  [256,     128,    64,     32,     16,     8,     4,     2    ],
+  [2,       4,      8,      16,     32,     64,    128,   256  ],
 ];
 
 function getSmoothness(grid) {
@@ -273,7 +282,7 @@ function initGame() {
 export default function Game() {
   const [state, setState] = useState(() => initGame())
   const [bestScore, setBestScore] = useState(() => {
-    try { return parseInt(localStorage.getItem('2048-best') || '0') } catch { return 0 }
+    try { return parseInt(localStorage.getItem('2048-best-8x8') || '0') } catch { return 0 }
   })
   const [aiMode, setAiMode] = useState(false)
   const [aiThinking, setAiThinking] = useState(false)
@@ -290,7 +299,7 @@ export default function Game() {
   useEffect(() => {
     if (state.score > bestScore) {
       setBestScore(state.score)
-      try { localStorage.setItem('2048-best', String(state.score)) } catch {}
+      try { localStorage.setItem('2048-best-8x8', String(state.score)) } catch {}
     }
   }, [state.score])
 
@@ -418,9 +427,10 @@ export default function Game() {
   }
 
   const fontSize = (val) => {
-    if (val >= 1024) return '1.1rem'
-    if (val >= 128) return '1.4rem'
-    return '1.7rem'
+    if (val >= 10000) return '0.55rem'
+    if (val >= 1000) return '0.65rem'
+    if (val >= 100) return '0.75rem'
+    return '0.9rem'
   }
 
   return (
@@ -568,12 +578,13 @@ export default function Game() {
         .g-board {
           background: var(--border-dark);
           border-radius: var(--radius);
-          padding: 8px;
+          padding: 6px;
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 8px;
-          width: min(96vw, 440px);
-          height: min(96vw, 440px);
+          grid-template-columns: repeat(8, 1fr);
+          gap: 5px;
+          --g-gap: 5px;
+          width: min(96vw, 520px);
+          height: min(96vw, 520px);
           box-shadow: 0 4px 24px rgba(0,0,0,0.10);
           touch-action: none;
           user-select: none;
@@ -589,25 +600,33 @@ export default function Game() {
         /* Tiles overlay */
         .g-tiles-overlay {
           position: absolute;
-          top: 10px;
-          left: 10px;
-          right: 10px;
-          bottom: 10px;
+          top: 6px;
+          left: 6px;
+          right: 6px;
+          bottom: 6px;
           pointer-events: none;
         }
         .g-tile {
           position: absolute;
-          border-radius: var(--radius-sm);
+          border-radius: var(--radius-xs, 2px);
           display: flex;
           align-items: center;
           justify-content: center;
-          font-family: var(--font-serif, 'Playfair Display'), serif;
+          font-family: var(--font-sora, 'Sora'), sans-serif;
           font-weight: 700;
           transition:
             top 0.12s cubic-bezier(0.25, 1, 0.5, 1),
             left 0.12s cubic-bezier(0.25, 1, 0.5, 1),
             transform 0.12s cubic-bezier(0.25, 1, 0.5, 1);
           will-change: transform, top, left;
+        }
+        @media (max-width: 600px) {
+          .g-tiles-overlay {
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+          }
         }
         .g-tile.new-tile {
           animation: g-pop-in 0.15s ease forwards;
@@ -702,57 +721,7 @@ export default function Game() {
           color: var(--text, #2b2b2b);
         }
 
-        /* Explainer */
-        .g-explainer {
-          background: var(--bg-box, #ffffff);
-          border: 1px solid var(--border-dark, #d4cbb8);
-          border-left: 3px solid var(--gold, #d4a35b);
-          border-radius: 0;
-          padding: 1.5rem 1.6rem;
-          margin-top: 0.5rem;
-        }
-        .g-explainer-title {
-          font-family: var(--font-serif, 'Playfair Display'), serif;
-          font-size: 1.1rem;
-          font-weight: 700;
-          color: var(--text, #2b2a26);
-          margin: 0 0 0.6rem;
-        }
-        .g-explainer p {
-          font-size: 0.88rem;
-          line-height: 1.72;
-          color: #5a5650;
-          margin: 0 0 0.75rem;
-        }
-        .g-explainer p:last-child { margin-bottom: 0; }
-        .g-mono {
-          font-family: var(--font-mono, 'Fira Code'), monospace;
-          font-size: 0.78em;
-          background: var(--surface, #e8e8e8);
-          color: var(--text-dim, #5a5a5a);
-          padding: 0.1em 0.4em;
-          border-radius: 0;
-        }
-        .g-heuristic-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 0.5rem 1.2rem;
-          margin: 0.75rem 0;
-        }
-        .g-heuristic-item {
-          display: flex;
-          align-items: baseline;
-          gap: 0.4rem;
-          font-size: 0.82rem;
-          color: #5a5650;
-        }
-        .g-heuristic-dot {
-          width: 6px; height: 6px;
-          border-radius: 50%;
-          background: var(--gold, #d4a35b);
-          flex-shrink: 0;
-          margin-top: 2px;
-        }
+
 
         /* Key hints */
         .g-keyhints {
@@ -763,14 +732,97 @@ export default function Game() {
           flex-wrap: wrap;
         }
         .g-keyhint {
-          font-family: var(--font-mono, 'Fira Code'), monospace;
+          font-family: var(--font-mono, 'JetBrains Mono'), monospace;
           font-size: 0.58rem;
           letter-spacing: 0.3em;
-          background: var(--bg-box, #ffffff);
-          border: 1px solid var(--border-dark, #c0c0c0);
+          background: var(--bg-box, rgba(30,30,30,0.6));
+          border: 1px solid var(--border-dark);
           border-radius: 999px;
           padding: 0.25rem 0.7rem;
-          color: var(--text-muted, #a3a092);
+          color: var(--text-muted);
+        }
+
+        /* ── MOBILE FIRST ── */
+        @media (max-width: 600px) {
+          .g-page {
+            padding: 1.2rem 0 env(safe-area-inset-bottom, 2rem);
+            min-height: 100dvh;
+          }
+          .g-container {
+            max-width: 100vw;
+            padding: 0;
+          }
+          .g-header {
+            padding: 0 1rem;
+            margin-bottom: 1rem;
+          }
+          .g-title {
+            font-size: clamp(1.4rem, 7vw, 2rem);
+            margin-bottom: 0.25rem;
+          }
+          .g-subtitle {
+            font-size: 0.6rem;
+            letter-spacing: 0.35em;
+          }
+          .g-scorebar {
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+            padding: 0 1rem;
+          }
+          .g-scorecard {
+            padding: 0.5rem 0.8rem;
+            min-width: 0;
+            flex: 1;
+          }
+          .g-scorecard-value {
+            font-size: 1.1rem;
+          }
+          .g-controls {
+            gap: 0.5rem;
+            padding: 0 1rem;
+            margin-bottom: 1rem;
+            justify-content: center;
+          }
+          .g-btn {
+            font-size: 0.6rem;
+            padding: 0.6rem 0.9rem;
+            letter-spacing: 0.25em;
+          }
+          .g-ai-status {
+            min-width: 0;
+            font-size: 0.55rem;
+          }
+          .g-board-wrap {
+            margin-bottom: 0.8rem;
+            padding: 0;
+          }
+          .g-board {
+            width: 100vw !important;
+            height: 100vw !important;
+            max-width: 100vw;
+            max-height: 100vw;
+            border-radius: 0 !important;
+            gap: 4px !important;
+            padding: 4px !important;
+            --g-gap: 4px;
+          }
+          .g-keyhints {
+            display: none;
+          }
+          .g-overlay {
+            border-radius: 0 !important;
+          }
+          .g-overlay-title {
+            font-size: 2rem;
+          }
+          .g-overlay-btns {
+            flex-direction: column;
+            gap: 0.5rem;
+          }
+          .g-overlay-btn {
+            padding: 0.7rem 2rem;
+            width: 100%;
+          }
         }
       `}</style>
 
@@ -779,7 +831,7 @@ export default function Game() {
 
           {/* ── Header ── */}
           <div className="g-header">
-            <h1 className="g-title">Play 2048</h1>
+            <h1 className="g-title">Play 2048 · 8×8</h1>
             <p className="g-subtitle">Powered by Expectimax AI · Depth 4</p>
           </div>
 
@@ -877,34 +929,7 @@ export default function Game() {
             </div>
           </div>
 
-          {/* ── Explainer ── */}
-          <div className="g-explainer">
-            <h2 className="g-explainer-title">My Expectimax Implementation</h2>
-            <p>
-              Since 2048 is stochastic, standard minimax is mathematically incorrect. I modeled the board spawns as chance nodes that evaluate probability-weighted outcomes (90% for 2, 10% for 4), alternating with maximisation layers for my optimal moves.
-            </p>
-            <p>
-              To achieve high scores, my algorithm runs a dynamic-depth search up to 5 plies, scoring board configurations using a multi-factored heuristic weight space:
-            </p>
-            <div className="g-heuristic-grid">
-              <div className="g-heuristic-item">
-                <div className="g-heuristic-dot" />
-                <span><strong>Corner Gradient</strong> — strict snake path weight matrix favoring the top-left</span>
-              </div>
-              <div className="g-heuristic-item">
-                <div className="g-heuristic-dot" />
-                <span><strong>Smoothness</strong> — log-difference penalty between adjacent cells</span>
-              </div>
-              <div className="g-heuristic-item">
-                <div className="g-heuristic-dot" />
-                <span><strong>Monotonicity</strong> — strictly sorted rows and columns</span>
-              </div>
-              <div className="g-heuristic-item">
-                <div className="g-heuristic-dot" />
-                <span><strong>Empty cells</strong> — heavy exponential bonus for open tiles</span>
-              </div>
-            </div>
-          </div>
+
 
         </div>
       </div>
@@ -1052,8 +1077,8 @@ function TileGrid({ grid, getTileStyle, fontSize, lastDir }) {
     <div className="g-tiles-overlay">
       {tiles.map(tile => {
         const style = getTileStyle(tile.val)
-        const cellFraction = `calc((100% - 24px) / 4)`
-        const offset = (idx) => `calc(${idx} * ((100% - 24px) / 4) + ${idx * 8}px)`
+        const cellFraction = `calc((100% - ${(SIZE - 1)} * var(--g-gap, 5px)) / ${SIZE})`
+        const offset = (idx) => `calc(${idx} * (100% - ${SIZE - 1} * var(--g-gap, 5px)) / ${SIZE} + ${idx} * var(--g-gap, 5px))`
 
         return (
           <div

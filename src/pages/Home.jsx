@@ -71,19 +71,17 @@ export default function Home() {
               </div>
 
               <h1>
-                I'm <span className="name">Timilehin</span>,<br />
-                Building the Future
+                I'm <span style={{ color: 'var(--accent)' }}>Timilehin</span>,<br />
+                AI/ML Developer
               </h1>
 
               <p className="tagline">
-                Results-driven AI/ML Developer with expertise in designing and deploying
-                machine learning solutions: fine-tuned LLMs, computer vision systems,
-                and production RAG pipelines.
+                AI/ML engineer with experience building and deploying production machine learning systems across healthcare, fintech, and agriculture. Contributed to platforms processing thousands of daily inference requests and handling 10,000+ knowledge graph entities.
               </p>
 
               <div className="hero-cta">
                 <Link to="/projects" className="btn btn-primary">View Projects</Link>
-                <Link to="/contact" className="btn btn-outline">Get in Touch</Link>
+                <a href="/cv/Timilehin Adedayo - CV.pdf" download className="btn btn-outline">Download CV</a>
               </div>
 
               <div className="social-links">
@@ -131,31 +129,37 @@ export default function Home() {
       </section>
 
       {/* ── What I Build ── */}
-      <section style={{ borderTop: '1px solid var(--border-dark)' }}>
+      <section style={{ borderTop: '1px solid var(--border-dark)', paddingTop: '4rem', paddingBottom: '4rem' }}>
         <div className="container">
           <ScrollReveal>
-            <div className="feature-grid-editorial">
+            <div style={{ marginBottom: '2.5rem' }}>
+              <span className="mono-label" style={{ color: 'var(--text-muted)' }}>§ CORE COMPETENCIES</span>
+              <h2 style={{ fontSize: '2.2rem', fontFamily: 'var(--font-serif)', marginTop: '0.5rem', color: 'var(--text)' }}>What I Build</h2>
+            </div>
+            <div className="grid-3" style={{ marginTop: '2rem' }}>
               {[
                 {
-                  idx: '01',
-                  title: 'LLM Fine-tuning',
-                  body: 'PEFT / QLoRA fine-tuning of open-source models for domain-specific alignment, safety research, and downstream tasks.',
+                  icon: 'psychology',
+                  title: 'LLM Fine-tuning & Alignment',
+                  body: 'PEFT / QLoRA fine-tuning of open-source models for domain-specific alignment, safety research, and downstream tasks with efficient GPU memory usage.',
                 },
                 {
-                  idx: '02',
+                  icon: 'hub',
                   title: 'RAG Pipelines',
-                  body: 'Hybrid retrieval systems combining vector search with graph traversal over Neo4j knowledge graphs for high-precision Q&A.',
+                  body: 'Hybrid retrieval systems combining vector search with graph traversal over Neo4j knowledge graphs for high-precision Q&A at enterprise scale.',
                 },
                 {
-                  idx: '03',
+                  icon: 'visibility',
                   title: 'Computer Vision',
-                  body: 'Swin Transformer-based classification with explainability layers (Grad-CAM++) for medical imaging and beyond.',
+                  body: 'Swin Transformer-based classification with explainability layers (Grad-CAM++) for medical imaging diagnostics and real-world deployment.',
                 },
               ].map((item) => (
-                <div key={item.title} className="feature-item-editorial">
-                  <span className="fi-label">§ {item.idx}</span>
-                  <h3>{item.title}</h3>
-                  <p>{item.body}</p>
+                <div key={item.title} className="card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '2.25rem', color: 'var(--accent)' }}>{item.icon}</span>
+                  </div>
+                  <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-sora)', fontWeight: 600, color: 'var(--text)', marginBottom: '0.8rem' }}>{item.title}</h3>
+                  <p style={{ color: 'var(--text-dim)', fontSize: '0.9rem', lineHeight: 1.6 }}>{item.body}</p>
                 </div>
               ))}
             </div>

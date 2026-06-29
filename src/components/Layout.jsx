@@ -27,8 +27,7 @@ export default function Layout() {
         <div className="container">
           <div className="header-inner">
             <Link to="/" className="logo">
-              T<span>IMILEHIN</span>
-              <div className="logo-sub">AI / ML Developer<br />Portfolio</div>
+              Timilehin Adedayo
             </Link>
 
             <button
@@ -65,10 +64,7 @@ export default function Layout() {
       <footer className="site-footer">
         <div className="container">
           <p>
-            &copy; 2026 Timilehin Adedayo |{' '}
-            <a href="https://timilehinadedayo.dev" target="_blank" rel="noreferrer">
-              timilehinadedayo.dev
-            </a>
+            &copy; 2026 Timilehin Adedayo &nbsp;·&nbsp; AI/ML Developer
           </p>
         </div>
       </footer>
