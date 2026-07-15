@@ -38,7 +38,7 @@ const experience = [
     company: 'CortexAI',
     role: 'Founder & Lead AI Consultant',
     period: '2025 - Present',
-    type: 'Full-time',
+    type: 'Part-time',
     bullets: [
       'Founded CortexAI, an AI research company developing BRAIN, a Retrieval-Augmented diagnostic framework for breast cancer detection using mammography imaging.',
       'Combined a Swin Transformer vision model with a clinical knowledge base to power the diagnosis engine.',
@@ -110,7 +110,7 @@ export default function About() {
         <div className="page-header">
           <h1>About <span>Me</span></h1>
           <p>
-            AI/ML engineer with experience building and deploying production machine learning systems across healthcare, fintech, and agriculture. Contributed to platforms processing thousands of daily inference requests and handling 10,000+ knowledge graph entities. Experienced in ML pipeline architecture, RAG systems, computer vision, and cross-functional team leadership. Cofounder of CortexAI, where I lead AI development on BRAIN, a medical imaging research project targeting breast cancer diagnosis now in talks for clinical piloting. Open to ML/AI engineering and full-stack AI opportunities.
+            AI/ML engineer with experience building and deploying production machine learning systems across healthcare, fintech, and agriculture. Contributed to platforms processing thousands of daily inference requests and handling 10,000+ knowledge graph entities. Experienced in ML pipeline architecture, RAG systems, computer vision, and cross-functional team leadership. Founder of CortexAI, where I lead AI development on BRAIN, a medical imaging research project targeting breast cancer diagnosis now in talks for clinical piloting. Open to ML/AI engineering and full-stack AI opportunities.
           </p>
         </div>
 
